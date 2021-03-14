@@ -46,7 +46,7 @@ class LoadMetaRead(MRJob):
         for value in values:
             yield key, str(value)
 
-    combiner = reducer
+    # combiner = reducer
 
 if __name__ == '__main__':
     LoadMetaRead.run()
