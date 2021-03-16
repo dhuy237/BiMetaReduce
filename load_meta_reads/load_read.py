@@ -15,7 +15,7 @@ class LoadMetaRead(MRJob):
     
     # INPUT_PROTOCOL = RawValueProtocol # RawValueProtocol: Default in python3
     # INTERNAL_PROTOCOL = RawValueProtocol
-    OUTPUT_PROTOCOL = RawProtocol
+    # OUTPUT_PROTOCOL = RawProtocol
 
     def mapper_raw(self, file_path, file_uri):
         from Bio import SeqIO

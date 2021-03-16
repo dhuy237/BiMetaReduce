@@ -1,8 +1,7 @@
 from mrjob.job import MRJob
-from mrjob.job import MRStep
 from mrjob.protocol import RawValueProtocol
 from mrjob.protocol import TextProtocol
-from mrjob.protocol import RawProtocol
+from mrjob.protocol import JSONProtocol
 
 import itertools as it
 from Bio.Seq import Seq
@@ -55,15 +54,22 @@ def create_document( reads, klist = LENGTHS_OF_K_MERS ):
 
 class CreateDocument(MRJob):
 
-    def mapper_create(self, _, line):
+    INPUT_PROTOCOL = JSONProtocol 
+
+    def mapper(self, _, line):
+        '''
+        Convert the input from string to list
+        Example of the input: "['AAC...TTG', '0']"
+        '''
+        a = line.strip("']['").split("', '") 
         # create k-mer dictionary
-        k_mers_set = [gen_kmers( line[0] )] #[genkmers(val) for val in klist]
-        # dictionary = corpora.Dictionary(k_mers_set)
+        k_mers_set = [gen_kmers( LENGTHS_OF_K_MERS )] #[genkmers(val) for val in klist]
+        dictionary = corpora.Dictionary(k_mers_set)
 
-        yield None, (line[0], line[1])
+        yield None, a[0]
 
-    def reducer_create(self, key, values):
-        pass
+    # def reducer(self, key, values):
+    #     pass
 
 if __name__ == '__main__':
     CreateDocument.run()
