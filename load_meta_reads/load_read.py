@@ -1,3 +1,5 @@
+#!./venv/bin/python
+
 from mrjob.job import MRJob
 from mrjob.protocol import RawValueProtocol
 from mrjob.protocol import TextProtocol
