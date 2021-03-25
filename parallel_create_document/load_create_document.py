@@ -9,10 +9,11 @@ from multiprocessing import Pool, Array, Value
 from gensim import corpora
 import numpy as np
 
-LENGTHS_OF_K_MERS = [4]
-N_WORKERS = 30
+import sys
+sys.path.append('../') # Add "../" to utils folder path
+from utils import globals
 
-def gen_kmers( klist=LENGTHS_OF_K_MERS ):
+def gen_kmers(klist=globals.LENGTHS_OF_K_MERS):
     bases = ['A', 'C', 'G', 'T']
     kmers_list = []
     for k in klist:
@@ -27,7 +28,7 @@ def gen_kmers( klist=LENGTHS_OF_K_MERS ):
 
     return list(kmers_dict.keys())
 
-def create_document( reads, klist = LENGTHS_OF_K_MERS ):
+def create_document(reads, klist=globals.LENGTHS_OF_K_MERS):
     """
     Create a set of document from reads, consist of all k-mer in each read
     For example:
@@ -52,6 +53,12 @@ def create_document( reads, klist = LENGTHS_OF_K_MERS ):
         documents.append(k_mers_read)
     return documents
 
+def create_dictionary(klist=globals.LENGTHS_OF_K_MERS):
+    # create k-mer dictionary
+    k_mers_set = [gen_kmers(val) for val in klist]
+    dictionary = corpora.Dictionary(k_mers_set)
+    return dictionary
+
 class CreateDocument(MRJob):
 
     INPUT_PROTOCOL = JSONProtocol 
@@ -62,11 +69,8 @@ class CreateDocument(MRJob):
         Example of the input: "['AAC...TTG', '0']"
         '''
         a = line.strip("']['").split("', '") 
-        # create k-mer dictionary
-        k_mers_set = [gen_kmers( LENGTHS_OF_K_MERS )] #[genkmers(val) for val in klist]
-        dictionary = corpora.Dictionary(k_mers_set)
-
-        yield None, a[0]
+        
+        yield None, (a[0], a[1])
 
     # def reducer(self, key, values):
     #     pass
