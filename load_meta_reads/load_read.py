@@ -50,5 +50,4 @@ class LoadMetaRead(MRJob):
 
     # combiner = reducer
 
-if __name__ == '__main__':
-    LoadMetaRead.run()
+LoadMetaRead.run()

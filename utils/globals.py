@@ -1,2 +1,5 @@
 LENGTHS_OF_K_MERS = [4]
 N_WORKERS = 30
+DATA_PATH = "../data/"
+IS_TFIDF = False
+SMARTIRS = None

@@ -13,9 +13,10 @@ import sys
 sys.path.append('../') # Add "../" to utils folder path
 from utils import globals
 
-def gen_kmers(klist=globals.LENGTHS_OF_K_MERS):
+def gen_kmers(klist):
     bases = ['A', 'C', 'G', 'T']
     kmers_list = []
+
     for k in klist:
         kmers_list += [''.join(p) for p in it.product(bases, repeat=k)]
 
@@ -28,7 +29,7 @@ def gen_kmers(klist=globals.LENGTHS_OF_K_MERS):
 
     return list(kmers_dict.keys())
 
-def create_document(reads, klist=globals.LENGTHS_OF_K_MERS):
+def create_document(read, klist):
     """
     Create a set of document from reads, consist of all k-mer in each read
     For example:
@@ -45,19 +46,16 @@ def create_document(reads, klist=globals.LENGTHS_OF_K_MERS):
     :return: list of str
     """
     # create a set of document
-    documents = []
-    for read in reads:
-        k_mers_read = []
-        for k in klist:
-            k_mers_read += [read[j:j + k] for j in range(0, len(read) - k + 1)]
-        documents.append(k_mers_read)
-    return documents
+    k_mers_read = []
+    for k in klist:
+        k_mers_read += [read[j:j + k] for j in range(0, len(read) - k + 1)]
+    return k_mers_read
 
-def create_dictionary(klist=globals.LENGTHS_OF_K_MERS):
+def create_dictionary(klist):
     # create k-mer dictionary
-    k_mers_set = [gen_kmers(val) for val in klist]
+    k_mers_set = [gen_kmers(klist)]
     dictionary = corpora.Dictionary(k_mers_set)
-    return dictionary
+    dictionary.save(globals.DATA_PATH + "dictionary.pkl")
 
 class CreateDocument(MRJob):
 
@@ -67,13 +65,24 @@ class CreateDocument(MRJob):
         '''
         Convert the input from string to list
         Example of the input: "['AAC...TTG', '0']"
+        read_label[0]: read
+        read_label[1]: label
         '''
-        a = line.strip("']['").split("', '") 
-        
-        yield None, (a[0], a[1])
+        read_label = line.strip("']['").split("', '") 
 
-    # def reducer(self, key, values):
-    #     pass
+        documents = create_document(str(read_label[0]), klist=globals.LENGTHS_OF_K_MERS)
 
-if __name__ == '__main__':
-    CreateDocument.run()
+        yield None, (read_label[0], read_label[1], documents)
+
+    def reducer(self, key, values):
+        # Store documents into a list
+        # documents = []
+        # for item in values:
+        #     documents += [item[2]]
+        # yield key, str(documents)
+
+        for value in values:
+            yield key, (value[0], value[1], value[2])
+
+create_dictionary(globals.LENGTHS_OF_K_MERS)
+CreateDocument.run()
