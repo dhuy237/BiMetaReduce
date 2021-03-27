@@ -8,16 +8,21 @@ from gensim.models.tfidfmodel import TfidfModel
 from gensim.models import LogEntropyModel
 
 import sys
-sys.path.append('../') # Add "../" to utils folder path
+
+sys.path.append("../")  # Add "../" to utils folder path
 from utils import globals
 
 DICTIONARY_PATH = "/home/dhuy237/thesis/code/bimetaReduce/data/dictionary.pkl"
 
-def create_corpus(dictionary_path, documents, 
-                  is_tfidf=False, 
-                  smartirs=None, 
-                  is_log_entropy=False, 
-                  is_normalize=True):
+
+def create_corpus(
+    dictionary_path,
+    documents,
+    is_tfidf=False,
+    smartirs=None,
+    is_log_entropy=False,
+    is_normalize=True,
+):
 
     dictionary = corpora.Dictionary.load(dictionary_path)
     # corpus = [dictionary.doc2bow(d, allow_update=True) for d in documents]
@@ -30,20 +35,24 @@ def create_corpus(dictionary_path, documents,
         corpus = log_entropy_model[corpus]
     return corpus
 
+
 class CreateCorpus(MRJob):
 
-    INPUT_PROTOCOL = JSONProtocol 
+    INPUT_PROTOCOL = JSONProtocol
 
     def mapper(self, _, line):
-        
-        corpus = create_corpus(dictionary_path=DICTIONARY_PATH,
-                                documents=line[2],
-                                is_tfidf=globals.IS_TFIDF,
-                                smartirs=globals.SMARTIRS)
+
+        corpus = create_corpus(
+            dictionary_path=DICTIONARY_PATH,
+            documents=line[2],
+            is_tfidf=globals.IS_TFIDF,
+            smartirs=globals.SMARTIRS,
+        )
         yield None, corpus
-        
+
     def reducer(self, key, values):
         for value in values:
             yield key, value
+
 
 CreateCorpus.run()

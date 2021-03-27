@@ -10,15 +10,17 @@ from gensim import corpora
 import numpy as np
 
 import sys
-sys.path.append('../') # Add "../" to utils folder path
+
+sys.path.append("../")  # Add "../" to utils folder path
 from utils import globals
 
+
 def gen_kmers(klist):
-    bases = ['A', 'C', 'G', 'T']
+    bases = ["A", "C", "G", "T"]
     kmers_list = []
 
     for k in klist:
-        kmers_list += [''.join(p) for p in it.product(bases, repeat=k)]
+        kmers_list += ["".join(p) for p in it.product(bases, repeat=k)]
 
     # reduce a half of k-mers due to symmetry
     kmers_dict = dict()
@@ -28,6 +30,7 @@ def gen_kmers(klist):
             kmers_dict[myk] = 0
 
     return list(kmers_dict.keys())
+
 
 def create_document(read, klist):
     """
@@ -48,8 +51,9 @@ def create_document(read, klist):
     # create a set of document
     k_mers_read = []
     for k in klist:
-        k_mers_read += [read[j:j + k] for j in range(0, len(read) - k + 1)]
+        k_mers_read += [read[j : j + k] for j in range(0, len(read) - k + 1)]
     return k_mers_read
+
 
 def create_dictionary(klist):
     # create k-mer dictionary
@@ -57,18 +61,19 @@ def create_dictionary(klist):
     dictionary = corpora.Dictionary(k_mers_set)
     dictionary.save(globals.DATA_PATH + "dictionary.pkl")
 
+
 class CreateDocument(MRJob):
 
-    INPUT_PROTOCOL = JSONProtocol 
+    INPUT_PROTOCOL = JSONProtocol
 
     def mapper(self, _, line):
-        '''
+        """
         Convert the input from string to list
         Example of the input: "['AAC...TTG', '0']"
         read_label[0]: read
         read_label[1]: label
-        '''
-        read_label = line.strip("']['").split("', '") 
+        """
+        read_label = line.strip("']['").split("', '")
 
         documents = create_document(str(read_label[0]), klist=globals.LENGTHS_OF_K_MERS)
 
@@ -83,6 +88,7 @@ class CreateDocument(MRJob):
 
         for value in values:
             yield key, (value[0], value[1], value[2])
+
 
 create_dictionary(globals.LENGTHS_OF_K_MERS)
 CreateDocument.run()
