@@ -47,8 +47,9 @@ class LoadMetaRead(MRJob):
             yield None, (str(read), str(label_list[label]))
 
     def reducer(self, key, values):
-        for value in values:
-            yield key, str(value)
+        for i, value in enumerate(values):
+            # yield i to know their line position in the dataset
+            yield key, (i, str(value))
 
     # combiner = reducer
 

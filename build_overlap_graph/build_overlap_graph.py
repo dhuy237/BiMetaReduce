@@ -78,8 +78,21 @@ def build_graph(E_Filtered, labels):
 
 
 class BuildOverlapGraph(MRJob):
+
+    INPUT_PROTOCOL = JSONProtocol
+
     def mapper(self, _, line):
-        pass
+        r = line[1].strip("']['").split("', '")[0]
+        for j in range(0, len(r) - globals.LENGTH_OF_Q_MERS + 1):
+            lmer = r[j : j + globals.LENGTH_OF_Q_MERS]
+            # line[0]: index of the line
+            yield lmer, line[0]
 
     def reducer(self, key, values):
-        pass
+        result = []
+        for value in values:
+            result.append(value)
+        yield key, result
+
+
+BuildOverlapGraph.run()
