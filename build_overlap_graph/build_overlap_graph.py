@@ -2,6 +2,7 @@ from mrjob.job import MRJob
 from mrjob.protocol import RawValueProtocol
 from mrjob.protocol import TextProtocol
 from mrjob.protocol import JSONProtocol
+from mrjob.step import MRStep
 
 import itertools as it
 import networkx as nx
@@ -81,18 +82,37 @@ class BuildOverlapGraph(MRJob):
 
     INPUT_PROTOCOL = JSONProtocol
 
-    def mapper(self, _, line):
+    def mapper_create_hash_table(self, _, line):
+        # Create hash table
         r = line[1].strip("']['").split("', '")[0]
         for j in range(0, len(r) - globals.LENGTH_OF_Q_MERS + 1):
             lmer = r[j : j + globals.LENGTH_OF_Q_MERS]
             # line[0]: index of the line
             yield lmer, line[0]
 
-    def reducer(self, key, values):
+    def reducer_create_hash_table(self, key, values):
         result = []
         for value in values:
             result.append(value)
         yield key, result
+
+    def mapper_create_edge(self, key, value):
+        for e in it.combinations(value, 2):
+            if e[0] != e[1]:
+                e_curr = (e[0], e[1])
+                yield e_curr, 1
+
+    def reducer_create_edge(self, key, values):
+        yield key, sum(values)
+
+    def steps(self):
+        return [
+            MRStep(
+                mapper=self.mapper_create_hash_table,
+                reducer=self.reducer_create_hash_table,
+            ),
+            MRStep(mapper=self.mapper_create_edge, reducer=self.reducer_create_edge),
+        ]
 
 
 BuildOverlapGraph.run()
