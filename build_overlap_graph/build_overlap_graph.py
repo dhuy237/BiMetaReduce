@@ -6,6 +6,7 @@ from mrjob.step import MRStep
 
 import itertools as it
 import networkx as nx
+import nxmetis
 
 import sys
 
@@ -76,6 +77,34 @@ def build_graph(E_Filtered, labels):
         G.add_edge(kv[0][0], kv[0][1], weight=kv[1])
 
     return G
+
+
+def metis_partition_groups_seeds(G):
+    CC = [cc for cc in nx.connected_components(G)]
+    GL = []
+    for subV in CC:
+        if len(subV) > globals.MAXIMUM_COMPONENT_SIZE:
+            # use metis to split the graph
+            subG = nx.subgraph(G, subV)
+            nparts = int(len(subV) / globals.MAXIMUM_COMPONENT_SIZE + 1)
+            (_, parts) = nxmetis.partition(subG, nparts, edge_weight="weight")
+
+            # only add connected components
+            for p in parts:
+                pG = nx.subgraph(G, p)
+                GL += [list(cc) for cc in nx.connected_components(pG)]
+
+            # add to group list
+            # Maybe ignore this line
+            GL += parts
+        else:
+            GL += [list(subV)]
+    SL = []
+    for p in GL:
+        pG = nx.subgraph(G, p)
+        SL += [nx.maximal_independent_set(pG)]
+
+    return GL, SL
 
 
 class BuildOverlapGraph(MRJob):
