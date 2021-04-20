@@ -12,7 +12,9 @@ import sys
 sys.path.append("../")  # Add "../" to utils folder path
 from utils import globals
 
-DICTIONARY_PATH = "/home/dhuy237/thesis/code/bimetaReduce/data/dictionary.pkl"
+# Don't know why cannot use this:
+# DICTIONARY_PATH = globals.DATA_PATH + "dictionary.pkl"
+DICTIONARY_PATH = "/home/dhuy237/thesis/code/bimetaReduce/data/R4_medium/dictionary.pkl"
 
 
 def create_corpus(

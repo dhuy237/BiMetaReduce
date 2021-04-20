@@ -113,7 +113,10 @@ class BuildOverlapGraph(MRJob):
 
     def mapper_create_hash_table(self, _, line):
         # Create hash table
-        r = line[1].strip("']['").split("', '")[0]
+        # Something wrong with this line when trying to run the code again
+        # r = line[1].strip("']['").split("', '")[0]
+
+        r = line[1][0]
         for j in range(0, len(r) - globals.LENGTH_OF_Q_MERS + 1):
             lmer = r[j : j + globals.LENGTH_OF_Q_MERS]
             # line[0]: index of the line

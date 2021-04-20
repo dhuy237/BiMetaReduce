@@ -73,7 +73,8 @@ class CreateDocument(MRJob):
         read_label[0]: read
         read_label[1]: label
         """
-        read_label = line.strip("']['").split("', '")
+        # read_label = line.strip("']['").split("', '")
+        read_label = line[1]
 
         documents = create_document(str(read_label[0]), klist=globals.LENGTHS_OF_K_MERS)
 
