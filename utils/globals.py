@@ -5,3 +5,5 @@ N_WORKERS = 30
 DATA_PATH = "../data/R4_medium/"
 IS_TFIDF = False
 SMARTIRS = None
+# feature vector by mean of all read feature
+GROUP_AGGREGATION = "MEAN"  # MEAN or MEDIAN

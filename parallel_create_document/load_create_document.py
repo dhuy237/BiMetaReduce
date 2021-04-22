@@ -78,7 +78,7 @@ class CreateDocument(MRJob):
 
         documents = create_document(str(read_label[0]), klist=globals.LENGTHS_OF_K_MERS)
 
-        yield None, (read_label[0], read_label[1], documents)
+        yield None, (line[0], read_label[0], read_label[1], documents)
 
     def reducer(self, key, values):
         # Store documents into a list
@@ -88,7 +88,7 @@ class CreateDocument(MRJob):
         # yield key, str(documents)
 
         for value in values:
-            yield key, (value[0], value[1], value[2])
+            yield key, (value[0], value[1], value[2], value[3])
 
 
 create_dictionary(globals.LENGTHS_OF_K_MERS)

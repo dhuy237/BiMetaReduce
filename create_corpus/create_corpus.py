@@ -46,11 +46,11 @@ class CreateCorpus(MRJob):
 
         corpus = create_corpus(
             dictionary_path=DICTIONARY_PATH,
-            documents=line[2],
+            documents=line[3],
             is_tfidf=globals.IS_TFIDF,
             smartirs=globals.SMARTIRS,
         )
-        yield None, corpus
+        yield None, (line[0], corpus)
 
     def reducer(self, key, values):
         for value in values:
