@@ -35,6 +35,7 @@ def create_corpus(
     elif is_log_entropy:
         log_entropy_model = LogEntropyModel(corpus, normalize=is_normalize)
         corpus = log_entropy_model[corpus]
+    dictionary.save(DICTIONARY_PATH)
     return corpus
 
 

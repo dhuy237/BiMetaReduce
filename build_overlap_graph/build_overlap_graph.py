@@ -1,3 +1,4 @@
+from utils import globals
 from mrjob.job import MRJob
 from mrjob.protocol import RawValueProtocol
 from mrjob.protocol import TextProtocol
@@ -11,7 +12,6 @@ import nxmetis
 import sys
 
 sys.path.append("../")  # Add "../" to utils folder path
-from utils import globals
 
 
 def build_hash_table(reads):
@@ -20,7 +20,7 @@ def build_hash_table(reads):
     lmers_dict = dict()
     for idx, r in enumerate(reads):
         for j in range(0, len(r) - globals.LENGTH_OF_Q_MERS + 1):
-            lmer = r[j : j + globals.LENGTH_OF_Q_MERS]
+            lmer = r[j: j + globals.LENGTH_OF_Q_MERS]
             if lmer in lmers_dict:
                 lmers_dict[lmer] += [idx]
             else:
@@ -42,7 +42,8 @@ def build_edge(lmers_dict):
                 E[e_curr] = 1
 
     # Contain pairs of reads that is connected (edge weight >= NUM_SHARED_READS is connected)
-    E_Filtered = {kv[0]: kv[1] for kv in E.items() if kv[1] >= globals.NUM_SHARED_READS}
+    E_Filtered = {kv[0]: kv[1]
+                  for kv in E.items() if kv[1] >= globals.NUM_SHARED_READS}
 
     return E_Filtered
 
@@ -118,7 +119,7 @@ class BuildOverlapGraph(MRJob):
 
         r = line[1][0]
         for j in range(0, len(r) - globals.LENGTH_OF_Q_MERS + 1):
-            lmer = r[j : j + globals.LENGTH_OF_Q_MERS]
+            lmer = r[j: j + globals.LENGTH_OF_Q_MERS]
             # line[0]: index of the line
             yield lmer, line[0]
 
@@ -143,7 +144,8 @@ class BuildOverlapGraph(MRJob):
                 mapper=self.mapper_create_hash_table,
                 reducer=self.reducer_create_hash_table,
             ),
-            MRStep(mapper=self.mapper_create_edge, reducer=self.reducer_create_edge),
+            MRStep(mapper=self.mapper_create_edge,
+                   reducer=self.reducer_create_edge)
         ]
 
 

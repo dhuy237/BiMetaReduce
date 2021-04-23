@@ -1,3 +1,4 @@
+from utils import globals
 from mrjob.job import MRJob
 from mrjob.protocol import RawValueProtocol
 from mrjob.protocol import TextProtocol
@@ -8,7 +9,6 @@ import numpy as np
 import sys
 
 sys.path.append("../")  # Add "../" to utils folder path
-from utils import globals
 
 
 def compute_dist(dist, groups, seeds, only_seed=True):

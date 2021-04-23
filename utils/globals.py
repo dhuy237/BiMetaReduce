@@ -7,3 +7,5 @@ IS_TFIDF = False
 SMARTIRS = None
 # feature vector by mean of all read feature
 GROUP_AGGREGATION = "MEAN"  # MEAN or MEDIAN
+SCALING = True
+CLUSTERING_METHOD = "KMEANS"
