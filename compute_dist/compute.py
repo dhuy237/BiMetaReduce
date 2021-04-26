@@ -42,6 +42,7 @@ def compute_dist(dist, groups, seeds, only_seed=True):
 
 
 class ComputeDist(MRJob):
+    # This step is included in cluster_groups
 
     INPUT_PROTOCOL = JSONProtocol
 

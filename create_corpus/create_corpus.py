@@ -14,6 +14,7 @@ from utils import globals
 
 # Don't know why cannot use this:
 # DICTIONARY_PATH = globals.DATA_PATH + "dictionary.pkl"
+# This path is used to save the updated dictionary.pkl file
 DICTIONARY_PATH = "/home/dhuy237/thesis/code/bimetaReduce/data/R4_medium/dictionary.pkl"
 
 
@@ -42,11 +43,21 @@ def create_corpus(
 class CreateCorpus(MRJob):
 
     INPUT_PROTOCOL = JSONProtocol
+    
+    def configure_args(self):
+        # Passthrough option
+        # That file will be downloaded to each task’s local directory 
+        # and the value of the option will magically be changed to its path. 
+        super(CreateCorpus, self).configure_args()
+        self.add_file_arg("--dictionary")
+
+    def mapper_init(self):
+        self.dictionary = corpora.Dictionary.load(self.options.dictionary)
 
     def mapper(self, _, line):
 
         corpus = create_corpus(
-            dictionary_path=DICTIONARY_PATH,
+            dictionary_path=self.dictionary,
             documents=line[3],
             is_tfidf=globals.IS_TFIDF,
             smartirs=globals.SMARTIRS,
