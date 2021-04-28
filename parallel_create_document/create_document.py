@@ -83,4 +83,4 @@ def parallel_create_document(reads, klist=LENGTHS_OF_K_MERS, n_workers=2 ):
     return dictionary, documents
 
 
-dictionary, documents = parallel_create_document(reads, klist=LENGTHS_OF_K_MERS, n_workers=N_WORKERS)
+# dictionary, documents = parallel_create_document(reads, klist=LENGTHS_OF_K_MERS, n_workers=N_WORKERS)
