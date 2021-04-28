@@ -95,17 +95,20 @@ def cluster_groups(group_dist):
 
     return y_grp_cl
 
-def clustering():
+def clustering(dictionary_path, filename_corpus, filename_gl):
     # Load dictionary, corpus and group list
-    dictionary = load_dictionary(DICTIONARY_PATH)
-    corpus = read_corpus(FILENAME_CORPUS)
-    GL = read_group(FILENAME_GL)
+    dictionary = load_dictionary(dictionary_path)
+    corpus = read_corpus(filename_corpus)
+    GL = read_group(filename_gl)
 
     corpus_m = gensim.matutils.corpus2dense(corpus, len(dictionary.keys())).T
 
+    # Not implemented to get seed list yet
     SL = []
 
     # Training the clustering model
     kmer_group_dist = compute_dist(corpus_m, GL, SL, only_seed=False)
 
     return kmer_group_dist
+
+kmer_clustering = clustering(DICTIONARY_PATH, FILENAME_CORPUS, FILENAME_GL)
