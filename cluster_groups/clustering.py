@@ -112,3 +112,5 @@ def clustering(dictionary_path, filename_corpus, filename_gl):
     return kmer_group_dist
 
 kmer_clustering = clustering(DICTIONARY_PATH, FILENAME_CORPUS, FILENAME_GL)
+
+print(kmer_clustering)
