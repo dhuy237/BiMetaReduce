@@ -11,8 +11,8 @@ import pandas as pd
 from pandas.core.common import flatten
 import sys
 
-sys.path.append("../")  # Add "../" to utils folder path
-from utils import globals
+# sys.path.append("../")  # Add "../" to utils folder path
+from bimeta.utils import globals
 
 FILENAME_VERTICES = globals.DATA_PATH + "output_1_1_2.txt"
 FILENAME_EDGES = globals.DATA_PATH + "output_2_1_2.txt"

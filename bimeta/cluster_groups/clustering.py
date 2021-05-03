@@ -12,8 +12,8 @@ import re
 import json
 import numpy as np
 
-sys.path.append("../")  # Add "../" to utils folder path
-from utils import globals
+# sys.path.append("../")  # Add "../" to utils folder path
+from bimeta.utils import globals
 
 FILENAME_GL = globals.DATA_PATH + 'output_2_2.txt'
 FILENAME_CORPUS = globals.DATA_PATH + 'output_1_3.txt'

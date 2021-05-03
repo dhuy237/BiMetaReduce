@@ -2,11 +2,16 @@ import itertools as it
 from Bio.Seq import Seq
 from gensim import corpora
 import numpy as np
+import argparse
 
 import sys
 
-sys.path.append("../")  # Add "../" to utils folder path
-from utils import globals
+# sys.path.append("../")  # Add "../" to utils folder path
+from bimeta.utils import globals
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-d", "--dictionary_path", help = "Dictionary path")
+args = parser.parse_args()
 
 def gen_kmers(klist):
     bases = ["A", "C", "G", "T"]
@@ -29,7 +34,7 @@ def create_dictionary(klist):
     # create k-mer dictionary
     k_mers_set = [gen_kmers(klist)]
     dictionary = corpora.Dictionary(k_mers_set)
-    dictionary.save(globals.DATA_PATH + "dictionary.pkl")
+    dictionary.save(args.dictionary_path + "/dictionary.pkl")
 
 
 create_dictionary(globals.LENGTHS_OF_K_MERS)
