@@ -43,6 +43,21 @@ def read_file(filename):
         
     return documents
 
+
+def convert2json(corpus):
+    result = []
+    for i, item in enumerate(corpus):
+        item = [list(elem) for elem in item]
+        result.append([i, item])
+    return result
+
+
+def save_file(result):
+    with open(globals.DATA_PATH+'output_1_3.txt', 'w+') as f:
+        for item in result:
+            f.write("null\t%s\n" % json.dumps(item))
+
+
 documents = read_file(FILENAME)
 dictionary = corpora.Dictionary.load(DICTIONARY_PATH)
 
@@ -53,4 +68,6 @@ corpus = create_corpus(
             smartirs=globals.SMARTIRS,
         )
 
-print(corpus[:2])
+result = convert2json(corpus)
+
+save_file(result)
