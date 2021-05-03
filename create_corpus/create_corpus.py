@@ -60,14 +60,12 @@ def save_file(result):
 
 documents = read_file(FILENAME)
 dictionary = corpora.Dictionary.load(DICTIONARY_PATH)
-
 corpus = create_corpus(
             dictionary=dictionary,
             documents=documents,
             is_tfidf=globals.IS_TFIDF,
             smartirs=globals.SMARTIRS,
         )
-
 result = convert2json(corpus)
 
 save_file(result)

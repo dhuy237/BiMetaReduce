@@ -3,6 +3,20 @@ from Bio.Seq import Seq
 import re
 import json
 
+"""
+For getting the overview of the .fna file.
+Example of output file reads_summary.json
+[
+    {
+        "species": 1,
+        "number": 500,
+        "code": "15668172",
+        "name": "\"Methanocaldococcus jannaschii DSM 2661 chromosome\" (392b1054a4bf536ea1cc349545ace50120973c3a)"
+    },
+    ...
+]
+"""
+
 DATA_PATH = "/home/dhuy237/thesis/code/bimetaReduce/data/R4_medium/R4_medium.fna"
 SAVE_PATH = "/home/dhuy237/thesis/code/bimetaReduce/data/R4_medium/"
 
