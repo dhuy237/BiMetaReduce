@@ -11,8 +11,8 @@ import numpy as np
 
 import sys
 
-sys.path.append("../")  # Add "../" to utils folder path
-from utils import globals
+# sys.path.append("../")  # Add "../" to utils folder path
+from bimeta.utils import globals
 
 
 def create_document(read, klist):

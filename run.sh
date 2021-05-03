@@ -1,7 +1,7 @@
 conda activate pyenv
 
 # Step 1.1
-python load_meta_reads/load_read.py data/test/R4_medium.fna >> data/test/output_1_1.txt
+python bimeta/load_meta_reads/load_read.py bimeta/data/test/R4_medium.fna >> bimeta/data/test/output_1_1.txt
 
 #  Step 1.2
-python parallel_create_document/load_create_document.py data/test/output_1_1.txt >> data/test/output_1_2.txt
+python -m bimeta.parallel_create_document.load_create_document bimeta/data/test/output_1_1.txt >> bimeta/data/test/output_1_2.txt
