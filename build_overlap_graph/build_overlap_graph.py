@@ -1,4 +1,3 @@
-from utils import globals
 from mrjob.job import MRJob
 from mrjob.protocol import RawValueProtocol
 from mrjob.protocol import TextProtocol
@@ -12,6 +11,7 @@ import nxmetis
 import sys
 
 sys.path.append("../")  # Add "../" to utils folder path
+from utils import globals
 
 
 def build_hash_table(reads):
