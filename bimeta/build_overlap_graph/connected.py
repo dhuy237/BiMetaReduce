@@ -10,14 +10,25 @@ from igraph import Graph, plot
 import pandas as pd
 from pandas.core.common import flatten
 import sys
+import argparse
 
 # sys.path.append("../")  # Add "../" to utils folder path
-from bimeta.utils import globals
+# from utils import globals
 
-FILENAME_VERTICES = globals.DATA_PATH + "output_1_1_2.txt"
-FILENAME_EDGES = globals.DATA_PATH + "output_2_1_2.txt"
-CHECKPOINT_DIR = "/home/dhuy237/graphframes_cps"
-OUTPUT_PATH = globals.DATA_PATH+'temp.txt'
+# Use only for include utils as .zip file: --py-files utils.zip
+from utils import globals
+
+# FILENAME_VERTICES = globals.DATA_PATH + "output_1_1_2.txt"
+# FILENAME_EDGES = globals.DATA_PATH + "output_2_1_2.txt"
+# CHECKPOINT_DIR = "/home/dhuy237/graphframes_cps"
+# OUTPUT_PATH = globals.DATA_PATH+'temp.txt'
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-v", "--vertices", help = "Input vertices file")
+parser.add_argument("-e", "--edges", help = "Input edges file")
+parser.add_argument("-c", "--checkpoint", help = "Checkpoint directory")
+parser.add_argument("-o", "--output", help = "Output file")
+args = parser.parse_args()
 
 def build_vertices(filename_vertices):
     V = []
@@ -52,10 +63,10 @@ def build_edges(filename_edges):
 
     return df_edges
 
-def get_connected_components(vertices, edges, checkpoint_dir):
+def get_connected_components(vertices_path, edges_path, checkpoint_dir):
     # Read vertices and edges files
-    df_vertices = build_vertices(FILENAME_VERTICES)
-    df_edges = build_edges(FILENAME_EDGES)
+    df_vertices = build_vertices(vertices_path)
+    df_edges = build_edges(edges_path)
 
     # Build Graph
     spark = SparkSession.builder.appName("build_graph").getOrCreate()
@@ -88,19 +99,32 @@ def get_connected_components(vertices, edges, checkpoint_dir):
     for _, value in dictionary.items():
         GL.append(value)
 
-    return GL
+    return GL, spark
 
-def save_file(GL, path):
-    # Save output as (key, value) format
-    # key: null
-    # value: each item in the GL list
+def save_file_local(GL, path):
+    """
+    Save output as (key, value) format. Only works for saving the file to local path.
+    key: null
+    value: each item in the GL list
 
-    # Note: Remember to export in json format for MapReduce job be able to read the file
-
+    Note: Remember to export in json format for MapReduce job be able to read the file
+    """
     with open(path, 'w+') as f:
         for item in GL:
             f.write("null\t%s\n" % json.dumps(item))
 
 
-GL = get_connected_components(FILENAME_VERTICES, FILENAME_EDGES, CHECKPOINT_DIR)
-save_file(GL, OUTPUT_PATH)
+def save_file_hdfs(GL, session, path):
+    """
+    Use this to save file to HDFS.
+    The saved file will be named "part-00000"
+    """
+    # First need to convert the list to parallel RDD
+    rdd_list = session.sparkContext.parallelize(GL)
+
+    # Use the map function to write one element per line and write all elements to a single file (coalesce)
+    rdd_list.coalesce(1).map(lambda row: str(row)).saveAsTextFile(path)
+
+GL, spark = get_connected_components(args.vertices, args.edges, args.checkpoint)
+# save_file_local(GL, args.output)
+save_file_hdfs(GL, spark, args.output)
