@@ -35,6 +35,11 @@ def create_corpus(dictionary, documents,
     elif is_log_entropy:
         log_entropy_model = LogEntropyModel(corpus, normalize=is_normalize)
         corpus = log_entropy_model[corpus]
+
+    # Will overwritten the existed file
+    # Save new file because the dictionary allow to be updated
+    dictionary.save(args.dictionary)
+    
     return corpus
 
 
