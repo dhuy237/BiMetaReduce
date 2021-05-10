@@ -47,7 +47,7 @@ def build_vertices(filename_vertices):
     return df_vertices
 
 
-def build_edges(filename_edges):
+def build_edges(filename_edges, num_reads):
     E = []
 
     with open(filename_edges) as f:
@@ -58,16 +58,16 @@ def build_edges(filename_edges):
         clean_line = re.sub("[^0-9]", " ", line).strip().split()
         E.append([clean_line[0], clean_line[1], clean_line[2]])
 
-    E_Filtered = [kv for kv in E if int(kv[2]) >= args.num_reads]
+    E_Filtered = [kv for kv in E if int(kv[2]) >= num_reads]
 
     df_edges = pd.DataFrame(E_Filtered, columns=["src", "dst", "weight"])
 
     return df_edges
 
-def get_connected_components(vertices_path, edges_path, checkpoint_dir):
+def get_connected_components(vertices_path, edges_path, checkpoint_dir, num_reads):
     # Read vertices and edges files
     df_vertices = build_vertices(vertices_path)
-    df_edges = build_edges(edges_path)
+    df_edges = build_edges(edges_path, num_reads)
 
     # Build Graph
     spark = SparkSession.builder.appName("build_graph").getOrCreate()
@@ -126,6 +126,6 @@ def save_file_hdfs(GL, session, path):
     # Use the map function to write one element per line and write all elements to a single file (coalesce)
     rdd_list.coalesce(1).map(lambda row: str(row)).saveAsTextFile(path)
 
-GL, spark = get_connected_components(args.vertices, args.edges, args.checkpoint)
+GL, spark = get_connected_components(args.vertices, args.edges, args.checkpoint, args.num_reads)
 # save_file_local(GL, args.output)
 save_file_hdfs(GL, spark, args.output)

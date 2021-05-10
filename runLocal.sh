@@ -5,6 +5,8 @@ export INPUT_FILE=R4_medium.fna
 export LENGTHS_OF_K_MERS=4
 export LENGTH_OF_Q_MERS=30
 export NUM_SHARED_READS=45
+export NUM_OF_SPECIES=2
+
 
 # Step 1.1
 python bimeta/load_meta_reads/load_read.py $DATA_PATH/$INPUT_FILE --output $DATA_PATH/output_1_1
@@ -53,5 +55,5 @@ python bimeta/cluster_groups/clustering.py \
 --group "/home/dhuy237/thesis/code/bimetaReduce/bimeta/data/test/output_2_2/part-00000" \
 --corpus "/home/dhuy237/thesis/code/bimetaReduce/bimeta/data/test/output_1_3.txt" \
 --dictionary "/home/dhuy237/thesis/code/bimetaReduce/bimeta/data/test/dictionary.pkl" \
---species 2 \
+--species $NUM_OF_SPECIES \
 --labels "/home/dhuy237/thesis/code/bimetaReduce/bimeta/data/test/output_1_1/part-00000"
