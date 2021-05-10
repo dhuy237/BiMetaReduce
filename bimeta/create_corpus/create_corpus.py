@@ -4,23 +4,21 @@ from gensim.models import LogEntropyModel
 
 import json
 import re
-import sys
 import argparse
 
+# import sys
 # sys.path.append("../")  # Add "../" to utils folder path
-from bimeta.utils import globals
-
-# Don't know why cannot use this:
-# DICTIONARY_PATH = globals.DATA_PATH + "dictionary.pkl"
-# This path is used to save the updated dictionary.pkl file
-# DICTIONARY_PATH = "/home/dhuy237/thesis/code/bimetaReduce/data/R4_medium/dictionary.pkl"
-# FILENAME = globals.DATA_PATH + 'output_1_2.txt'
+# from bimeta.utils import globals
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--input", help = "Input file")
 parser.add_argument("-o", "--output", help = "Output file")
 parser.add_argument("-d", "--dictionary", help = "Dictionary file")
 args = parser.parse_args()
+
+# Not implemented yet in the Web UI
+IS_TFIDF = False
+SMARTIRS = None
 
 def create_corpus(dictionary, documents, 
                   is_tfidf=False, 
@@ -75,8 +73,8 @@ dictionary = corpora.Dictionary.load(args.dictionary)
 corpus = create_corpus(
             dictionary=dictionary,
             documents=documents,
-            is_tfidf=globals.IS_TFIDF,
-            smartirs=globals.SMARTIRS,
+            is_tfidf=IS_TFIDF,
+            smartirs=SMARTIRS,
         )
 result = convert2json(corpus)
 

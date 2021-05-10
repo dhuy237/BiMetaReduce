@@ -16,7 +16,7 @@ import argparse
 # from utils import globals
 
 # Use only for include utils as .zip file: --py-files utils.zip
-from utils import globals
+# from utils import globals
 
 # FILENAME_VERTICES = globals.DATA_PATH + "output_1_1_2.txt"
 # FILENAME_EDGES = globals.DATA_PATH + "output_2_1_2.txt"
@@ -28,6 +28,7 @@ parser.add_argument("-v", "--vertices", help = "Input vertices file")
 parser.add_argument("-e", "--edges", help = "Input edges file")
 parser.add_argument("-c", "--checkpoint", help = "Checkpoint directory")
 parser.add_argument("-o", "--output", help = "Output file")
+parser.add_argument("-r", "--num_reads", help = "Number of shared reads", default=45, type=int)
 args = parser.parse_args()
 
 def build_vertices(filename_vertices):
@@ -57,7 +58,7 @@ def build_edges(filename_edges):
         clean_line = re.sub("[^0-9]", " ", line).strip().split()
         E.append([clean_line[0], clean_line[1], clean_line[2]])
 
-    E_Filtered = [kv for kv in E if int(kv[2]) >= globals.NUM_SHARED_READS]
+    E_Filtered = [kv for kv in E if int(kv[2]) >= args.num_reads]
 
     df_edges = pd.DataFrame(E_Filtered, columns=["src", "dst", "weight"])
 

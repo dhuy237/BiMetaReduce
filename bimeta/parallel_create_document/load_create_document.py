@@ -9,10 +9,9 @@ from multiprocessing import Pool, Array, Value
 from gensim import corpora
 import numpy as np
 
-import sys
-
+# import sys
 # sys.path.append("../")  # Add "../" to utils folder path
-from bimeta.utils import globals
+# from bimeta.utils import globals
 
 
 def create_document(read, klist):
@@ -42,6 +41,13 @@ class CreateDocument(MRJob):
 
     INPUT_PROTOCOL = JSONProtocol
 
+    def configure_args(self):
+        # Passthrough option
+        # That file will be downloaded to each task’s local directory 
+        # and the value of the option will magically be changed to its path. 
+        super(CreateDocument, self).configure_args()
+        self.add_passthru_arg("-k", "--k_mers", help="Lengths of k-mers", default='4', type=str, nargs='?')
+
     def mapper(self, _, line):
         """
         Convert the input from string to list
@@ -52,7 +58,7 @@ class CreateDocument(MRJob):
         # read_label = line.strip("']['").split("', '")
         read_label = line[1]
 
-        documents = create_document(str(read_label[0]), klist=globals.LENGTHS_OF_K_MERS)
+        documents = create_document(str(read_label[0]), klist=map(int, self.options.k_mers))
 
         yield None, (line[0], read_label[0], read_label[1], documents)
 

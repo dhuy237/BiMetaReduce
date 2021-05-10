@@ -4,14 +4,15 @@ from gensim import corpora
 import numpy as np
 import argparse
 
-import sys
-
+# import sys
 # sys.path.append("../")  # Add "../" to utils folder path
-from bimeta.utils import globals
+# from bimeta.utils import globals
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-d", "--dictionary_path", help = "Dictionary path")
+parser.add_argument("-k", "--k_mers", help = "Lengths of k-mers", default='4', type=str, nargs='?')
 args = parser.parse_args()
+
 
 def gen_kmers(klist):
     bases = ["A", "C", "G", "T"]
@@ -37,4 +38,5 @@ def create_dictionary(klist):
     dictionary.save(args.dictionary_path + "/dictionary.pkl")
 
 
-create_dictionary(globals.LENGTHS_OF_K_MERS)
+# Convert inut type int to list of int
+create_dictionary(map(int, args.k_mers))

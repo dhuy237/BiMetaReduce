@@ -11,7 +11,7 @@ from sklearn.metrics import confusion_matrix
 import argparse
 
 # sys.path.append("../")  # Add "../" to utils folder path
-from bimeta.utils import globals
+# from bimeta.utils import globals
 
 # FILENAME_GL = globals.DATA_PATH + 'output_2_2.txt'
 # FILENAME_CORPUS = globals.DATA_PATH + 'output_1_3.txt'
