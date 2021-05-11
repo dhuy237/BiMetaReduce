@@ -36,24 +36,26 @@ $DATA_PATH/output_1_1/part-00000 \
 --output $DATA_PATH/output_2_1 \
 --q_mers $LENGTH_OF_Q_MERS
 
+# Somehow the output of MR job return many files, usually just part-00000
+cat $DATA_PATH/output_2_1/* > $DATA_PATH/output_2_1.txt
 
 # Step 2.2
 spark-submit --packages graphframes:graphframes:0.8.1-spark3.0-s_2.12 \
 bimeta/build_overlap_graph/connected.py \
 --vertices $DATA_PATH/output_1_1/part-00000 \
---edges $DATA_PATH/output_2_1/part-00000 \
---checkpoint "/home/dhuy237/graphframes_cps/2" \
---output "/home/dhuy237/graphframes_cps/2/5" \
+--edges $DATA_PATH/output_2_1.txt \
+--checkpoint "/home/dhuy237/graphframes_cps/4" \
+--output "/home/dhuy237/graphframes_cps/4/5" \
 --num_reads $NUM_SHARED_READS
 
-
-hdfs dfs -get /home/dhuy237/graphframes_cps/2/5/part-00000 $DATA_PATH/output_2_2/
+mkdir $DATA_PATH/output_2_2/
+hdfs dfs -get /home/dhuy237/graphframes_cps/4/5/part-00000 $DATA_PATH/output_2_2/
 
 
 # Step 3
 python bimeta/cluster_groups/clustering.py \
---group "/home/dhuy237/thesis/code/bimetaReduce/bimeta/data/test/output_2_2/part-00000" \
---corpus "/home/dhuy237/thesis/code/bimetaReduce/bimeta/data/test/output_1_3.txt" \
---dictionary "/home/dhuy237/thesis/code/bimetaReduce/bimeta/data/test/dictionary.pkl" \
+--group $DATA_PATH/output_2_2/part-00000 \
+--corpus $DATA_PATH/output_1_3.txt \
+--dictionary $DATA_PATH/dictionary.pkl \
 --species $NUM_OF_SPECIES \
---labels "/home/dhuy237/thesis/code/bimetaReduce/bimeta/data/test/output_1_1/part-00000"
+--labels $DATA_PATH/output_1_1/part-00000

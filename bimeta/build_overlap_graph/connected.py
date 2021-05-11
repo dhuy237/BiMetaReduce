@@ -64,6 +64,7 @@ def build_edges(filename_edges, num_reads):
 
     return df_edges
 
+
 def get_connected_components(vertices_path, edges_path, checkpoint_dir, num_reads):
     # Read vertices and edges files
     df_vertices = build_vertices(vertices_path)
@@ -102,6 +103,7 @@ def get_connected_components(vertices_path, edges_path, checkpoint_dir, num_read
 
     return GL, spark
 
+
 def save_file_local(GL, path):
     """
     Save output as (key, value) format. Only works for saving the file to local path.
@@ -125,6 +127,7 @@ def save_file_hdfs(GL, session, path):
 
     # Use the map function to write one element per line and write all elements to a single file (coalesce)
     rdd_list.coalesce(1).map(lambda row: str(row)).saveAsTextFile(path)
+
 
 GL, spark = get_connected_components(args.vertices, args.edges, args.checkpoint, args.num_reads)
 # save_file_local(GL, args.output)

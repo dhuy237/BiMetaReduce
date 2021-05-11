@@ -1,4 +1,7 @@
-from sklearn.cluster import KMeans, SpectralClustering
+from pyspark.ml.feature import VectorAssembler
+from pyspark.ml.clustering import KMeans
+from pyspark.sql import SparkSession
+
 from sklearn import preprocessing
 
 import gensim
@@ -8,30 +11,17 @@ import re
 import json
 import numpy as np
 from sklearn.metrics import confusion_matrix
-import argparse
+import pandas as pd
 
-# sys.path.append("../")  # Add "../" to utils folder path
-# from bimeta.utils import globals
-
-# FILENAME_GL = globals.DATA_PATH + 'output_2_2.txt'
-# FILENAME_CORPUS = globals.DATA_PATH + 'output_1_3.txt'
-
-# DICTIONARY_PATH = globals.DATA_PATH + "dictionary.pkl"
-
-# NUM_OF_SPECIES = 2
+FILENAME_GL = "/home/dhuy237/thesis/code/bimetaReduce/bimeta/data/test/output_2_2/part-00000"
+FILENAME_CORPUS = "/home/dhuy237/thesis/code/bimetaReduce/bimeta/data/test/output_1_3.txt"
+FILENAME_LABELS = "/home/dhuy237/thesis/code/bimetaReduce/bimeta/data/test/output_1_1/part-00000"
+DICTIONARY_PATH = "/home/dhuy237/thesis/code/bimetaReduce/bimeta/data/test/dictionary.pkl"
 
 NUM_OF_SPECIES = 2
 GROUP_AGGREGATION = "MEAN"  # MEAN or MEDIAN
 SCALING = True
 CLUSTERING_METHOD = "KMEANS"
-
-parser = argparse.ArgumentParser()
-parser.add_argument("-g", "--group", help = "Input GL file")
-parser.add_argument("-c", "--corpus", help = "Input corpus file")
-parser.add_argument("-d", "--dictionary", help = "Input dictionary file")
-parser.add_argument("-s", "--species", help = "Input number of species")
-parser.add_argument("-l", "--labels", help = "Input labels file")
-args = parser.parse_args()
 
 def read_group(filename_gl):
     GL = []
@@ -45,11 +35,9 @@ def read_group(filename_gl):
 
     return GL
 
-
 def load_dictionary(dictionary_path):
     dictionary = corpora.Dictionary.load(dictionary_path)
     return dictionary
-
 
 def read_corpus(filename_corpus):
     corpus = []
@@ -63,7 +51,6 @@ def read_corpus(filename_corpus):
     
     return corpus
 
-
 def read_labels(filename_labels):
     labels = []
     
@@ -75,7 +62,6 @@ def read_labels(filename_labels):
         labels.append(clean_line)
     
     return labels
-    
 
 def compute_dist(dist, groups, seeds, only_seed=True):
     res = []
@@ -97,50 +83,6 @@ def compute_dist(dist, groups, seeds, only_seed=True):
                 
     return np.array(res)
 
-
-def cluster_groups(group_dist, num_of_species):
-    if SCALING:
-        scaler = preprocessing.StandardScaler()
-        X_scaled = scaler.fit_transform(group_dist)
-    else:
-        X_scaled = group_dist
-
-    if CLUSTERING_METHOD == 'KMEANS':
-        # clustering by k-means
-        kmeans = KMeans(n_clusters=num_of_species, init='k-means++')
-        y_grp_cl = kmeans.fit_predict(X_scaled)
-        
-    elif CLUSTERING_METHOD == 'SPECTRAL':
-        spectral = SpectralClustering(n_clusters=num_of_species, eigen_solver='arpack',
-                                      affinity="nearest_neighbors")
-        #spectral = SpectralClustering(n_clusters=NUM_OF_SPECIES, eigen_solver='arpack',
-        #                              affinity="rbf")
-        y_grp_cl = spectral.fit_predict(X_scaled)
-
-    return y_grp_cl
-
-
-def clustering(dictionary_path, filename_corpus, filename_gl, num_of_species):
-    # Load dictionary, corpus and group list
-    dictionary = load_dictionary(dictionary_path)
-    corpus = read_corpus(filename_corpus)
-    GL = read_group(filename_gl)
-
-    corpus_m = gensim.matutils.corpus2dense(corpus, len(dictionary.keys())).T
-
-    # Not implemented to get seed list yet
-    SL = []
-
-    # Training the clustering model
-    kmer_group_dist = compute_dist(corpus_m, GL, SL, only_seed=False)
-
-    model = cluster_groups(kmer_group_dist, num_of_species)
-
-    y_kmer_grp_cl = assign_cluster_2_reads(GL, model)
-
-    return y_kmer_grp_cl
-
-
 def assign_cluster_2_reads( groups, y_grp_cl ):
     label_cl_dict=dict()
 
@@ -151,11 +93,10 @@ def assign_cluster_2_reads( groups, y_grp_cl ):
     y_cl=[]
     for i in sorted (label_cl_dict):
         y_cl.append(label_cl_dict[i])
-
+    print(y_cl)
     return y_cl
 
-
-def evalQuality(y_true, y_pred, n_clusters=args.species):
+def evalQuality(y_true, y_pred, n_clusters=NUM_OF_SPECIES):
     A = confusion_matrix(y_pred, y_true)
     if len(A) == 1:
       return 1, 1
@@ -165,7 +106,36 @@ def evalQuality(y_true, y_pred, n_clusters=args.species):
     return prec, rcal
 
 
-kmer_clustering = clustering(args.dictionary, args.corpus, args.group, int(args.species))
-labels = read_labels(args.labels)
-prec, rcal = evalQuality(labels, kmer_clustering, n_clusters = int(args.species))
+dictionary = load_dictionary(DICTIONARY_PATH)
+corpus = read_corpus(FILENAME_CORPUS)
+GL = read_group(FILENAME_GL)
+
+corpus_m = gensim.matutils.corpus2dense(corpus, len(dictionary.keys())).T
+
+SL = []
+kmer_group_dist = compute_dist(corpus_m, GL, SL, only_seed=False)
+
+df = pd.DataFrame(kmer_group_dist)
+
+spark = SparkSession.builder.appName("kmeans").getOrCreate()
+group_dist_df = spark.createDataFrame(df)
+
+df_columns = group_dist_df.schema.names
+
+vecAssembler = VectorAssembler(inputCols=df_columns, outputCol="features")
+new_df = vecAssembler.transform(group_dist_df)
+
+kmeans = KMeans(k=2, seed=1)  # 2 clusters here
+model = kmeans.fit(new_df.select('features'))
+
+transformed = model.transform(new_df)
+transformed.select(["features", "prediction"]).show()  
+
+y_pred = transformed.select("prediction").rdd.flatMap(lambda x: x).collect()
+
+y_kmer_grp_cl = assign_cluster_2_reads(GL, y_pred)
+
+labels = read_labels(FILENAME_LABELS)
+
+prec, rcal = evalQuality(labels, y_kmer_grp_cl, n_clusters = NUM_OF_SPECIES)
 print( 'K-mer (group): Prec = %.4f, Recall = %.4f, F1 = %.4f' % (prec, rcal, 2.0/(1.0/prec+1.0/rcal)) )
