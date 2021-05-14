@@ -44,16 +44,17 @@ spark-submit --packages graphframes:graphframes:0.8.1-spark3.0-s_2.12 \
 bimeta/build_overlap_graph/connected.py \
 --vertices $DATA_PATH/output_1_1/part-00000 \
 --edges $DATA_PATH/output_2_1.txt \
---checkpoint "/home/dhuy237/graphframes_cps/4" \
---output "/home/dhuy237/graphframes_cps/4/5" \
+--checkpoint "/home/dhuy237/graphframes_cps/3" \
+--output "/home/dhuy237/graphframes_cps/3/5" \
+--output_graph $DATA_PATH \
 --num_reads $NUM_SHARED_READS
 
 mkdir $DATA_PATH/output_2_2/
-hdfs dfs -get /home/dhuy237/graphframes_cps/4/5/part-00000 $DATA_PATH/output_2_2/
+hdfs dfs -get /home/dhuy237/graphframes_cps/3/5/part-00000 $DATA_PATH/output_2_2/
 
 
 # Step 3
-python bimeta/cluster_groups/clustering.py \
+spark-submit bimeta/cluster_groups/kmeans.py \
 --group $DATA_PATH/output_2_2/part-00000 \
 --corpus $DATA_PATH/output_1_3.txt \
 --dictionary $DATA_PATH/dictionary.pkl \

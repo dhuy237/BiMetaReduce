@@ -11,6 +11,7 @@ import pandas as pd
 from pandas.core.common import flatten
 import sys
 import argparse
+import seaborn as sns
 
 # sys.path.append("../")  # Add "../" to utils folder path
 # from utils import globals
@@ -23,11 +24,14 @@ import argparse
 # CHECKPOINT_DIR = "/home/dhuy237/graphframes_cps"
 # OUTPUT_PATH = globals.DATA_PATH+'temp.txt'
 
+MAXIMUM_SPECIES = 20
+
 parser = argparse.ArgumentParser()
 parser.add_argument("-v", "--vertices", help = "Input vertices file")
 parser.add_argument("-e", "--edges", help = "Input edges file")
 parser.add_argument("-c", "--checkpoint", help = "Checkpoint directory")
 parser.add_argument("-o", "--output", help = "Output file")
+parser.add_argument("-g", "--output_graph", help = "Output graph file")
 parser.add_argument("-r", "--num_reads", help = "Number of shared reads", default=45, type=int)
 args = parser.parse_args()
 
@@ -101,7 +105,7 @@ def get_connected_components(vertices_path, edges_path, checkpoint_dir, num_read
     for _, value in dictionary.items():
         GL.append(value)
 
-    return GL, spark
+    return GL, spark, g
 
 
 def save_file_local(GL, path):
@@ -129,6 +133,24 @@ def save_file_hdfs(GL, session, path):
     rdd_list.coalesce(1).map(lambda row: str(row)).saveAsTextFile(path)
 
 
-GL, spark = get_connected_components(args.vertices, args.edges, args.checkpoint, args.num_reads)
+def visualize_graph(color_dict, graphframes, output_path):
+    # Create iGraph from graphframes edges
+    ig = Graph.TupleList(graphframes.edges.collect(), directed=False)
+
+    # Get label from graphframe vertices
+    label = graphframes.vertices.select("label").rdd.flatMap(lambda x: x).collect()
+
+    # Create "color" attribute for vertex label
+    ig.vs["color"] = [color_dict[label[int(name)]] for name in ig.vs["name"]]
+
+    # Save plot as .png
+    out = plot(ig, vertex_size=10, bbox=(0, 0, 500, 500))
+    out.save(output_path+"/graph.png")
+
+palette = sns.color_palette(None, MAXIMUM_SPECIES).as_hex()
+color_dict = {str(i):palette[i] for i in range(MAXIMUM_SPECIES)}
+
+GL, spark, g = get_connected_components(args.vertices, args.edges, args.checkpoint, args.num_reads)
 # save_file_local(GL, args.output)
 save_file_hdfs(GL, spark, args.output)
+visualize_graph(color_dict, g, args.output_graph)
