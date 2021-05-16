@@ -73,15 +73,15 @@ class BuildOverlapGraph(MRJob):
         ]
 
 
-start_time = datetime.now()
+# start_time = datetime.now()
 BuildOverlapGraph.run()
-execute_time = (datetime.now() - start_time).total_seconds()
-print("Step 2.1:", execute_time)
+# execute_time = (datetime.now() - start_time).total_seconds()
+# print("Step 2.1:", execute_time)
 
-data = {}
-data["2.1"] = execute_time
-with open(args.time+'/overview.json', 'r+') as outfile:
-    file = json.load(outfile)
-    file.update(data)
-    outfile.seek(0)
-    json.dump(file, outfile)
+# data = {}
+# data["2.1"] = execute_time
+# with open(args.time+'/overview.json', 'r+') as outfile:
+#     file = json.load(outfile)
+#     file.update(data)
+#     outfile.seek(0)
+#     json.dump(file, outfile)

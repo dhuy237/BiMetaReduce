@@ -80,15 +80,15 @@ class CreateDocument(MRJob):
             yield key, (value[0], value[1], value[2], value[3])
 
 
-start_time = datetime.now()
+# start_time = datetime.now()
 CreateDocument.run()
-execute_time = (datetime.now() - start_time).total_seconds()
-print("Step 1.2:", execute_time)
+# execute_time = (datetime.now() - start_time).total_seconds()
+# print("Step 1.2:", execute_time)
 
-data = {}
-data["1.2"] = execute_time
-with open(args.time+'/overview.json', 'r+') as outfile:
-    file = json.load(outfile)
-    file.update(data)
-    outfile.seek(0)
-    json.dump(file, outfile)
+# data = {}
+# data["1.2"] = execute_time
+# with open(args.time+'/overview.json', 'r+') as outfile:
+#     file = json.load(outfile)
+#     file.update(data)
+#     outfile.seek(0)
+#     json.dump(file, outfile)

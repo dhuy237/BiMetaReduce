@@ -10,6 +10,7 @@ import re
 from datetime import datetime
 import json
 import argparse
+import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--time", help = "Output overview file")
@@ -66,9 +67,11 @@ class LoadMetaRead(MRJob):
 start_time = datetime.now()
 LoadMetaRead.run()
 execute_time = (datetime.now() - start_time).total_seconds()
-print("Step 1.1:", execute_time)
-
-data = {}
-data["1.1"] = execute_time
-with open(args.time+'/overview.json', 'w') as outfile:
-    json.dump(data, outfile)
+# print("Step 1.1:", execute_time)
+# sys.stderr.write(str(execute_time))
+# data = {"step1":str(execute_time)}
+# json.dump(data, sys.stderr)
+# data = {}
+# data["1.1"] = execute_time
+# with open(args.time+'/overview.json', 'w') as outfile:
+#     json.dump(data, outfile)

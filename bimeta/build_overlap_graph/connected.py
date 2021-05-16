@@ -153,20 +153,20 @@ def visualize_graph(color_dict, graphframes, output_path):
 palette = sns.color_palette(None, MAXIMUM_SPECIES).as_hex()
 color_dict = {str(i):palette[i] for i in range(MAXIMUM_SPECIES)}
 
-start_time = datetime.now()
+# start_time = datetime.now()
 GL, spark, g = get_connected_components(args.vertices, args.edges, args.checkpoint, args.num_reads)
-execute_time = (datetime.now() - start_time).total_seconds()
+# execute_time = (datetime.now() - start_time).total_seconds()
 
 # save_file_local(GL, args.output)
 save_file_hdfs(GL, spark, args.output)
 visualize_graph(color_dict, g, args.output_graph)
 
-print("Step 2.2:", execute_time)
+# print("Step 2.2:", execute_time)
 
-data = {}
-data["2.2"] = execute_time
-with open(args.time+'/overview.json', 'r+') as outfile:
-    file = json.load(outfile)
-    file.update(data)
-    outfile.seek(0)
-    json.dump(file, outfile)
+# data = {}
+# data["2.2"] = execute_time
+# with open(args.time+'/overview.json', 'r+') as outfile:
+#     file = json.load(outfile)
+#     file.update(data)
+#     outfile.seek(0)
+#     json.dump(file, outfile)

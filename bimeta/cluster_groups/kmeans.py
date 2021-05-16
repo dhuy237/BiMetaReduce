@@ -167,9 +167,9 @@ data["Precision"] = prec
 data["Recall"] = rcal
 data["Fmeasure"] = F1
 
-with open(args.time+'/overview.json', 'r+') as outfile:
+with open(args.time+'/overview_2.json', 'r+') as outfile:
     file = json.load(outfile)
-    data["Execution"] = file["1.1"] + file["1.2"] + file["1.3"] + file["2.1"] + file["2.2"] + data["3"]
+    data["Execution"] = float(file["Step_1_1"]) + float(file["Step_1_2"]) + float(file["Step_1_3"]) + float(file["Step_2_1"]) + float(file["Step_2_2"]) + data["3"]
     file.update(data)
     outfile.seek(0)
     json.dump(file, outfile)
