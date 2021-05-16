@@ -41,19 +41,19 @@ RUN_TIME_IN_S=$(echo "scale = 3; $RUN_TIME / 1000000000" | bc)
 echo "\"Step_1_2\":\"$RUN_TIME_IN_S\"," >> $DATA_PATH/$OVERVIEW
 
 
-# #  Step 1.3
-# START_TIME=`date +%s%N`
+#  Step 1.3
+START_TIME=`date +%s%N`
 
-# python bimeta/create_corpus/create_corpus_mr.py \
-# $DATA_PATH/output_1_2/part-00000 \
-# --output $DATA_PATH/output_1_3 \
-# --dictionary $DATA_PATH/dictionary.pkl
+python bimeta/create_corpus/create_corpus.py \
+--input $DATA_PATH/output_1_2/part-00000 \
+--output $DATA_PATH/output_1_3/part-00000 \
+--dictionary $DATA_PATH/dictionary.pkl
 
-# END_TIME=`date +%s%N`
+END_TIME=`date +%s%N`
 
-# RUN_TIME=`expr $END_TIME - $START_TIME`
-# RUN_TIME_IN_S=$(echo "scale = 3; $RUN_TIME / 1000000000" | bc)
-# echo "\"Step_1_3\":\"$RUN_TIME_IN_S\"," >> $DATA_PATH/$OVERVIEW
+RUN_TIME=`expr $END_TIME - $START_TIME`
+RUN_TIME_IN_S=$(echo "scale = 3; $RUN_TIME / 1000000000" | bc)
+echo "\"Step_1_3\":\"$RUN_TIME_IN_S\"," >> $DATA_PATH/$OVERVIEW
 
 
 # # Step 2.1

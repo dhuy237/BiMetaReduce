@@ -6,6 +6,7 @@ import json
 import re
 import argparse
 import json
+import os 
 
 # import sys
 # sys.path.append("../")  # Add "../" to utils folder path
@@ -64,6 +65,7 @@ def convert2json(corpus):
 
 
 def save_file(result, output_path):
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, 'w+') as f:
         for item in result:
             f.write("null\t%s\n" % json.dumps(item))
