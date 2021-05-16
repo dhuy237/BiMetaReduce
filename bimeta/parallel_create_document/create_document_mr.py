@@ -58,7 +58,7 @@ class CreateDocument(MRJob):
         # read_label = line.strip("']['").split("', '")
         read_label = line[1]
 
-        documents = create_document(str(read_label[0]), klist=map(int, self.options.k_mers))
+        documents = create_document(str(read_label[0]), klist=list(map(int, self.options.k_mers)))
 
         yield None, (line[0], read_label[0], read_label[1], documents)
 

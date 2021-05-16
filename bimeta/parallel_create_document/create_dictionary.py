@@ -1,7 +1,6 @@
 import itertools as it
 from Bio.Seq import Seq
 from gensim import corpora
-import numpy as np
 import argparse
 
 # import sys

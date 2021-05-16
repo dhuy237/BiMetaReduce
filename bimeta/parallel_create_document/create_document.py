@@ -3,26 +3,22 @@ from Bio.Seq import Seq
 from multiprocessing import Pool, Array, Value
 from gensim import corpora
 import numpy as np
+import argparse
+import json
+import os
+import re
 
-LENGTHS_OF_K_MERS = [4]
+parser = argparse.ArgumentParser()
+parser.add_argument("-i", "--input", help = "Input file")
+parser.add_argument("-o", "--output", help = "Output file")
+parser.add_argument("-k", "--k_mers", help="Lengths of k-mers", default='4', type=str, nargs='?')
+args = parser.parse_args()
+
+# LENGTHS_OF_K_MERS = [4]
 N_WORKERS = 30
 
-def gen_kmers( klist=LENGTHS_OF_K_MERS ):
-    bases = ['A', 'C', 'G', 'T']
-    kmers_list = []
-    for k in klist:
-        kmers_list += [''.join(p) for p in it.product(bases, repeat=k)]
-    print(len(kmers_list))
-    # reduce a half of k-mers due to symmetry
-    kmers_dict = dict()
-    for myk in kmers_list:
-        k_reverse_complement=Seq(myk).reverse_complement()
-        if not myk in kmers_dict and not str(k_reverse_complement) in kmers_dict:
-            kmers_dict[myk]=0
 
-    return list(kmers_dict.keys())
-
-def create_document( reads, klist = LENGTHS_OF_K_MERS ):
+def create_document(reads, klist):
     """
     Create a set of document from reads, consist of all k-mer in each read
     For example:
@@ -45,10 +41,11 @@ def create_document( reads, klist = LENGTHS_OF_K_MERS ):
         for k in klist:
             k_mers_read += [read[j:j + k] for j in range(0, len(read) - k + 1)]
         documents.append(k_mers_read)
+
     return documents
     
     
-def parallel_create_document(reads, klist=LENGTHS_OF_K_MERS, n_workers=2 ):
+def parallel_create_document(reads, klist, n_workers=2):
     """
     Create a set of document from reads, consist of all k-mer in each read
     For example:
@@ -65,22 +62,50 @@ def parallel_create_document(reads, klist=LENGTHS_OF_K_MERS, n_workers=2 ):
     :return: list of str
     """
 
-    # create k-mer dictionary
-    k_mers_set = [gen_kmers( klist )] #[genkmers(val) for val in klist]
-    dictionary = corpora.Dictionary(k_mers_set)
-
     documents = []
     reads_str_chunk = [list(item) for item in np.array_split(reads, n_workers)]
     chunks = [(reads_str_chunk[i], klist) for i in range(n_workers)]
-    print(chunks)
     pool = Pool(processes=n_workers)
 
     result = pool.starmap(create_document, chunks)
     for item in result:
         documents += item
-    print(dictionary)     
-    print(documents)
-    return dictionary, documents
+
+    return documents
 
 
-# dictionary, documents = parallel_create_document(reads, klist=LENGTHS_OF_K_MERS, n_workers=N_WORKERS)
+def read_file(filename):
+    reads = []
+    labels = []
+
+    with open(filename) as f:
+        content = f.readlines()
+
+    for line in content:
+        _, read, label = re.sub('[null\t\n\[\]\"]', '', line).replace(' ', '').split(',')
+        reads.append(read)
+        labels.append(label)
+        
+    return reads, labels
+
+
+def convert2json(reads, labels, documents):
+    result = []
+    for i, item in enumerate(reads):
+        result.append([i, item, str(labels[i]), documents[i]])
+    return result
+
+
+def save_file(result, output_path):
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    with open(output_path, 'w+') as f:
+        for item in result:
+            f.write("null\t%s\n" % json.dumps(item))
+
+
+reads, labels = read_file(args.input)
+
+documents = create_document(reads, klist=list(map(int, args.k_mers)))
+
+result = convert2json(reads, labels, documents)
+save_file(result, args.output)
