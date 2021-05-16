@@ -7,19 +7,14 @@ from gensim import corpora
 from gensim.models.tfidfmodel import TfidfModel
 from gensim.models import LogEntropyModel
 
-import sys
+# DICTIONARY_PATH = "/home/dhuy237/thesis/code/bimetaReduce/data/R4_medium/dictionary.pkl"
 
-sys.path.append("../")  # Add "../" to utils folder path
-from utils import globals
-
-# Don't know why cannot use this:
-# DICTIONARY_PATH = globals.DATA_PATH + "dictionary.pkl"
-# This path is used to save the updated dictionary.pkl file
-DICTIONARY_PATH = "/home/dhuy237/thesis/code/bimetaReduce/data/R4_medium/dictionary.pkl"
-
+# Not implemented yet in the Web UI
+IS_TFIDF = False
+SMARTIRS = None
 
 def create_corpus(
-    dictionary_path,
+    dictionary,
     documents,
     is_tfidf=False,
     smartirs=None,
@@ -27,16 +22,16 @@ def create_corpus(
     is_normalize=True,
 ):
 
-    dictionary = corpora.Dictionary.load(dictionary_path)
+    # dictionary = corpora.Dictionary.load(dictionary_path)
     # corpus = [dictionary.doc2bow(d, allow_update=True) for d in documents]
-    corpus = dictionary.doc2bow(documents, allow_update=True)
+    corpus = dictionary.doc2bow(documents, allow_update=False)
     if is_tfidf:
         tfidf = TfidfModel(corpus=corpus, smartirs=smartirs)
         corpus = tfidf[corpus]
     elif is_log_entropy:
         log_entropy_model = LogEntropyModel(corpus, normalize=is_normalize)
         corpus = log_entropy_model[corpus]
-    dictionary.save(DICTIONARY_PATH)
+    # dictionary.save(DICTIONARY_PATH)
     return corpus
 
 
@@ -57,10 +52,10 @@ class CreateCorpus(MRJob):
     def mapper(self, _, line):
 
         corpus = create_corpus(
-            dictionary_path=self.dictionary,
+            dictionary=self.dictionary,
             documents=line[3],
-            is_tfidf=globals.IS_TFIDF,
-            smartirs=globals.SMARTIRS,
+            is_tfidf=IS_TFIDF,
+            smartirs=SMARTIRS,
         )
         yield None, (line[0], corpus)
 

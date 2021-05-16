@@ -6,23 +6,19 @@ LENGTHS_OF_K_MERS=4
 LENGTH_OF_Q_MERS=30
 NUM_SHARED_READS=45
 NUM_OF_SPECIES=2
-USR_HDFS=hdfs:///user/graphframes_cps/1
+USR_HDFS=hdfs:///user/graphframes_cps/4
+OVERVIEW=overview.json
 
 START_TIME=`date +%s%N`
-echo "Start time is: $START_TIME"
 
 # Step 1.1
-python bimeta/load_meta_reads/load_read.py $DATA_PATH/$INPUT_FILE --output $DATA_PATH/output_1_1 --time $DATA_PATH
+python bimeta/load_meta_reads/load_read_mr.py $DATA_PATH/$INPUT_FILE --output $DATA_PATH/output_1_1
 
 END_TIME=`date +%s%N`
-echo "End time is: $END_TIME"
-
 
 RUN_TIME=`expr $END_TIME - $START_TIME`
 RUN_TIME_IN_S=$(echo "scale = 3; $RUN_TIME / 1000000000" | bc)
-echo "Run time is: $RUN_TIME_IN_S"
-
-echo "{\"Step_1_1\":\"$RUN_TIME_IN_S\"," > $DATA_PATH/overview_2.json
+echo "{\"Step_1_1\":\"$RUN_TIME_IN_S\"," > $DATA_PATH/$OVERVIEW
 
 #  Step 1.2
 python bimeta/parallel_create_document/create_dictionary.py \
@@ -31,49 +27,46 @@ python bimeta/parallel_create_document/create_dictionary.py \
 
 START_TIME=`date +%s%N`
 
-python bimeta/parallel_create_document/load_create_document.py \
+python bimeta/parallel_create_document/create_document_mr.py \
 $DATA_PATH/output_1_1/part-00000 \
 --output $DATA_PATH/output_1_2 \
---k_mers $LENGTHS_OF_K_MERS \
---time $DATA_PATH
+--k_mers $LENGTHS_OF_K_MERS
 
 END_TIME=`date +%s%N`
 
 RUN_TIME=`expr $END_TIME - $START_TIME`
 RUN_TIME_IN_S=$(echo "scale = 3; $RUN_TIME / 1000000000" | bc)
-echo "\"Step_1_2\":\"$RUN_TIME_IN_S\"," >> $DATA_PATH/overview_2.json
+echo "\"Step_1_2\":\"$RUN_TIME_IN_S\"," >> $DATA_PATH/$OVERVIEW
 
 
 #  Step 1.3
 START_TIME=`date +%s%N`
 
-python bimeta/create_corpus/create_corpus.py \
---input $DATA_PATH/output_1_2/part-00000 \
---output $DATA_PATH/output_1_3.txt \
---dictionary $DATA_PATH/dictionary.pkl \
---time $DATA_PATH
+python bimeta/create_corpus/create_corpus_mr.py \
+$DATA_PATH/output_1_2/part-00000 \
+--output $DATA_PATH/output_1_3 \
+--dictionary $DATA_PATH/dictionary.pkl
 
 END_TIME=`date +%s%N`
 
 RUN_TIME=`expr $END_TIME - $START_TIME`
 RUN_TIME_IN_S=$(echo "scale = 3; $RUN_TIME / 1000000000" | bc)
-echo "\"Step_1_3\":\"$RUN_TIME_IN_S\"," >> $DATA_PATH/overview_2.json
+echo "\"Step_1_3\":\"$RUN_TIME_IN_S\"," >> $DATA_PATH/$OVERVIEW
 
 
 # Step 2.1
 START_TIME=`date +%s%N`
 
-python bimeta/build_overlap_graph/build_overlap_graph.py \
+python bimeta/build_overlap_graph/build_overlap_graph_mr.py \
 $DATA_PATH/output_1_1/part-00000 \
 --output $DATA_PATH/output_2_1 \
---q_mers $LENGTH_OF_Q_MERS \
---time $DATA_PATH
+--q_mers $LENGTH_OF_Q_MERS
 
 END_TIME=`date +%s%N`
 
 RUN_TIME=`expr $END_TIME - $START_TIME`
 RUN_TIME_IN_S=$(echo "scale = 3; $RUN_TIME / 1000000000" | bc)
-echo "\"Step_2_1\":\"$RUN_TIME_IN_S\"," >> $DATA_PATH/overview_2.json
+echo "\"Step_2_1\":\"$RUN_TIME_IN_S\"," >> $DATA_PATH/$OVERVIEW
 
 # Somehow the output of MR job return many files, usually just part-00000
 cat $DATA_PATH/output_2_1/* > $DATA_PATH/output_2_1.txt
@@ -89,14 +82,13 @@ bimeta/build_overlap_graph/connected.py \
 --checkpoint $USR_HDFS \
 --output $USR_HDFS/output \
 --output_graph $DATA_PATH \
---num_reads $NUM_SHARED_READS \
---time $DATA_PATH
+--num_reads $NUM_SHARED_READS
 
 END_TIME=`date +%s%N`
 
 RUN_TIME=`expr $END_TIME - $START_TIME`
 RUN_TIME_IN_S=$(echo "scale = 3; $RUN_TIME / 1000000000" | bc)
-echo "\"Step_2_2\":\"$RUN_TIME_IN_S\"}" >> $DATA_PATH/overview_2.json
+echo "\"Step_2_2\":\"$RUN_TIME_IN_S\"}" >> $DATA_PATH/$OVERVIEW
 
 
 mkdir $DATA_PATH/output_2_2/
@@ -106,8 +98,8 @@ hdfs dfs -get $USR_HDFS/output/part-00000 $DATA_PATH/output_2_2/
 # Step 3
 spark-submit bimeta/cluster_groups/kmeans.py \
 --group $DATA_PATH/output_2_2/part-00000 \
---corpus $DATA_PATH/output_1_3.txt \
+--corpus $DATA_PATH/output_1_3/part-00000 \
 --dictionary $DATA_PATH/dictionary.pkl \
 --species $NUM_OF_SPECIES \
 --labels $DATA_PATH/output_1_1/part-00000 \
---time $DATA_PATH
+--time $DATA_PATH/$OVERVIEW

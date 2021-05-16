@@ -11,6 +11,7 @@ FOL_LCL_PATH=$HOME/Documents # Folder Local Path is used to save output of pure 
 OUT_FLR_WEB=$HOME/ServerWeb/BiMeta/userFolder/$USR_SESSION/output
 GRAPH_FLR_WEB=$HOME/ServerWeb/BiMeta/userFolder/$USR_SESSION/graph
 JSON_FLR_WEB=$HOME/ServerWeb/BiMeta/jsonData
+OVERVIEW=overview.json
 
 RND_NO=$(echo $RANDOM % 100 + 1 | bc)
 hdfs dfs -mkdir /user/session_$RND_NO
@@ -35,14 +36,13 @@ START_TIME=`date +%s%N`
 python $HOME/ServerWeb/BiMeta/BimetaCode/bimeta/load_meta_reads/load_read.py $INP_HDFS \
 --output $OUT_HDFS/output_1_1 \
 -r hadoop \
---conf-path $CONF_FILE \
---time $JSON_FLR_WEB
+--conf-path $CONF_FILE
 
 END_TIME=`date +%s%N`
 
 RUN_TIME=`expr $END_TIME - $START_TIME`
 RUN_TIME_IN_S=$(echo "scale = 3; $RUN_TIME / 1000000000" | bc)
-echo "{\"Step_1_1\":\"$RUN_TIME_IN_S\"," > $JSON_FLR_WEB/overview_2.json
+echo "{\"Step_1_1\":\"$RUN_TIME_IN_S\"," > $JSON_FLR_WEB/$OVERVIEW
 # End----------------------------------------------------------------------
 
 hdfs dfs -get $OUT_HDFS/output_1_1/part-00000 $OUT_FLR_WEB
@@ -61,14 +61,13 @@ $OUT_HDFS/output_1_1/part-00000 \
 --output $OUT_HDFS/output_1_2 \
 -r hadoop \
 --conf-path $CONF_FILE \
---k_mers $LENGTHS_OF_K_MERS \
---time $JSON_FLR_WEB
+--k_mers $LENGTHS_OF_K_MERS
 
 END_TIME=`date +%s%N`
 
 RUN_TIME=`expr $END_TIME - $START_TIME`
 RUN_TIME_IN_S=$(echo "scale = 3; $RUN_TIME / 1000000000" | bc)
-echo "{\"Step_1_2\":\"$RUN_TIME_IN_S\"," > $JSON_FLR_WEB/overview_2.json
+echo "{\"Step_1_2\":\"$RUN_TIME_IN_S\"," > $JSON_FLR_WEB/$OVERVIEW
 # End----------------------------------------------------------------------
 
 
@@ -82,14 +81,13 @@ START_TIME=`date +%s%N`
 python bimeta/create_corpus/create_corpus.py \
 --input $OUT_FLR_WEB/OutStep_1_2 \
 --output $OUT_FLR_WEB/OutStep_1_3 \
---dictionary $FOL_LCL_PATH/dictionary.pkl \
---time $JSON_FLR_WEB
+--dictionary $FOL_LCL_PATH/dictionary.pkl
 
 END_TIME=`date +%s%N`
 
 RUN_TIME=`expr $END_TIME - $START_TIME`
 RUN_TIME_IN_S=$(echo "scale = 3; $RUN_TIME / 1000000000" | bc)
-echo "{\"Step_1_3\":\"$RUN_TIME_IN_S\"," > $JSON_FLR_WEB/overview_2.json
+echo "{\"Step_1_3\":\"$RUN_TIME_IN_S\"," > $JSON_FLR_WEB/$OVERVIEW
 # End----------------------------------------------------------------------
 
 
@@ -102,14 +100,13 @@ $OUT_HDFS/output_1_1/part-00000 \
 --output $OUT_HDFS/output_2_1 \
 -r hadoop \
 --conf-path $CONF_FILE \
---q_mers $LENGTH_OF_Q_MERS \
---time $JSON_FLR_WEB
+--q_mers $LENGTH_OF_Q_MERS
 
 END_TIME=`date +%s%N`
 
 RUN_TIME=`expr $END_TIME - $START_TIME`
 RUN_TIME_IN_S=$(echo "scale = 3; $RUN_TIME / 1000000000" | bc)
-echo "{\"Step_2_1\":\"$RUN_TIME_IN_S\"," > $JSON_FLR_WEB/overview_2.json
+echo "{\"Step_2_1\":\"$RUN_TIME_IN_S\"," > $JSON_FLR_WEB/$OVERVIEW
 # End----------------------------------------------------------------------
 
 hdfs dfs -get $OUT_HDFS/output_2_1/part-00000 $OUT_FLR_WEB
@@ -138,14 +135,13 @@ bimeta/build_overlap_graph/connected.py \
 --checkpoint $OUT_HDFS/graphframes_cps \
 --output $OUT_HDFS/graphframes_cps/2 \
 --output_graph $GRAPH_FLR_WEB \
---num_reads $NUM_SHARED_READS \
---time $JSON_FLR_WEB
+--num_reads $NUM_SHARED_READS
 
 END_TIME=`date +%s%N`
 
 RUN_TIME=`expr $END_TIME - $START_TIME`
 RUN_TIME_IN_S=$(echo "scale = 3; $RUN_TIME / 1000000000" | bc)
-echo "{\"Step_2_2\":\"$RUN_TIME_IN_S\"," > $JSON_FLR_WEB/overview_2.json
+echo "{\"Step_2_2\":\"$RUN_TIME_IN_S\"," > $JSON_FLR_WEB/$OVERVIEW
 # End----------------------------------------------------------------------
 
 
@@ -159,8 +155,8 @@ spark-submit bimeta/cluster_groups/kmeans.py \
 --corpus $OUT_FLR_WEB/OutStep_1_3 \
 --dictionary $FOL_LCL_PATH/dictionary.pkl \
 --species $NUM_OF_SPECIES \
---labels $OUT_FLR_WEB/OutStep_1_1 \
---time $JSON_FLR_WEB
+--labels $OUT_FLR_WEB/OutStep_1_1
+--time $JSON_FLR_WEB/$OVERVIEW
 # End----------------------------------------------------------------------
 
 # # Clean HDFS

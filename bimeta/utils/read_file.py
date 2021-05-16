@@ -21,7 +21,7 @@ Example of output file reads_summary.json
 
 DATA_PATH = "/home/dhuy237/thesis/code/bimetaReduce/bimeta/data/R4_medium/R4_medium.fna"
 SAVE_PATH = "/home/dhuy237/thesis/code/bimetaReduce/bimeta/data/R4_medium/"
-JSON_PATH = "/home/dhuy237/thesis/code/bimetaReduce/bimeta/data/test"
+JSON_PATH = "/home/dhuy237/thesis/code/bimetaReduce/bimeta/data/test/overview.json"
 MAXIMUM_SPECIES = 20
 
 def format_read(read):

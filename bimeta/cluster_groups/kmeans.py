@@ -162,14 +162,14 @@ print('K-mer (group): Prec = %.4f, Recall = %.4f, F1 = %.4f' % (prec, rcal, 2.0/
 F1 = 2 * (prec * rcal) / (prec + rcal)
 
 data = {}
-data["3"] = execute_time
+data["Step_3"] = str(execute_time)
 data["Precision"] = prec
 data["Recall"] = rcal
 data["Fmeasure"] = F1
 
-with open(args.time+'/overview_2.json', 'r+') as outfile:
+with open(args.time, 'r+') as outfile:
     file = json.load(outfile)
-    data["Execution"] = float(file["Step_1_1"]) + float(file["Step_1_2"]) + float(file["Step_1_3"]) + float(file["Step_2_1"]) + float(file["Step_2_2"]) + data["3"]
+    data["Execution"] = float(file["Step_1_1"]) + float(file["Step_1_2"]) + float(file["Step_1_3"]) + float(file["Step_2_1"]) + float(file["Step_2_2"]) + float(data["Step_3"])
     file.update(data)
     outfile.seek(0)
     json.dump(file, outfile)

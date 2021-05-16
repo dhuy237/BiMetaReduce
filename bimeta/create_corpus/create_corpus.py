@@ -5,7 +5,6 @@ from gensim.models import LogEntropyModel
 import json
 import re
 import argparse
-from datetime import datetime
 import json
 
 # import sys
@@ -16,7 +15,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--input", help = "Input file")
 parser.add_argument("-o", "--output", help = "Output file")
 parser.add_argument("-d", "--dictionary", help = "Dictionary file")
-parser.add_argument("-t", "--time", help = "Output overview file")
 args, unknown = parser.parse_known_args()
 
 # Not implemented yet in the Web UI
@@ -70,7 +68,6 @@ def save_file(result, output_path):
         for item in result:
             f.write("null\t%s\n" % json.dumps(item))
 
-# start_time = datetime.now()
 
 documents = read_file(args.input)
 dictionary = corpora.Dictionary.load(args.dictionary)
@@ -83,14 +80,3 @@ corpus = create_corpus(
 result = convert2json(corpus)
 
 save_file(result, args.output)
-
-# execute_time = (datetime.now() - start_time).total_seconds()
-# print("Step 1.3:", execute_time)
-
-# data = {}
-# data["1.3"] = execute_time
-# with open(args.time+'/overview.json', 'r+') as outfile:
-#     file = json.load(outfile)
-#     file.update(data)
-#     outfile.seek(0)
-#     json.dump(file, outfile)
