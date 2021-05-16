@@ -8,11 +8,17 @@ from Bio.Seq import Seq
 from multiprocessing import Pool, Array, Value
 from gensim import corpora
 import numpy as np
+from datetime import datetime
+import json
+import argparse
 
 # import sys
 # sys.path.append("../")  # Add "../" to utils folder path
 # from bimeta.utils import globals
 
+parser = argparse.ArgumentParser()
+parser.add_argument("-t", "--time", help = "Output overview file")
+args, unknown = parser.parse_known_args()
 
 def create_document(read, klist):
     """
@@ -47,6 +53,7 @@ class CreateDocument(MRJob):
         # and the value of the option will magically be changed to its path. 
         super(CreateDocument, self).configure_args()
         self.add_passthru_arg("-k", "--k_mers", help="Lengths of k-mers", default='4', type=str, nargs='?')
+        self.add_passthru_arg("-t", "--time", help = "Output overview file")
 
     def mapper(self, _, line):
         """
@@ -73,4 +80,15 @@ class CreateDocument(MRJob):
             yield key, (value[0], value[1], value[2], value[3])
 
 
+start_time = datetime.now()
 CreateDocument.run()
+execute_time = (datetime.now() - start_time).total_seconds()
+print("Step 1.2:", execute_time)
+
+data = {}
+data["1.2"] = execute_time
+with open(args.time+'/overview.json', 'r+') as outfile:
+    file = json.load(outfile)
+    file.update(data)
+    outfile.seek(0)
+    json.dump(file, outfile)

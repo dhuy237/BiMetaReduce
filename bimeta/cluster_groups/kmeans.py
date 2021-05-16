@@ -1,3 +1,4 @@
+from gensim.models.tfidfmodel import precompute_idfs
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.clustering import KMeans
 from pyspark.sql import SparkSession
@@ -13,6 +14,8 @@ import numpy as np
 from sklearn.metrics import confusion_matrix
 import pandas as pd
 import argparse
+from datetime import datetime
+import json
 
 # FILENAME_GL = "/home/dhuy237/thesis/code/bimetaReduce/bimeta/data/test/output_2_2/part-00000"
 # FILENAME_CORPUS = "/home/dhuy237/thesis/code/bimetaReduce/bimeta/data/test/output_1_3.txt"
@@ -28,7 +31,8 @@ parser.add_argument("-c", "--corpus", help = "Input corpus file")
 parser.add_argument("-d", "--dictionary", help = "Input dictionary file")
 parser.add_argument("-s", "--species", help = "Input number of species")
 parser.add_argument("-l", "--labels", help = "Input labels file")
-args = parser.parse_args()
+parser.add_argument("-t", "--time", help = "Output overview file")
+args, unknown = parser.parse_known_args()
 
 def read_group(filename_gl):
     GL = []
@@ -100,7 +104,6 @@ def assign_cluster_2_reads( groups, y_grp_cl ):
     y_cl=[]
     for i in sorted (label_cl_dict):
         y_cl.append(label_cl_dict[i])
-    print(y_cl)
     return y_cl
 
 def evalQuality(y_true, y_pred, n_clusters):
@@ -145,6 +148,28 @@ def kmeans(dictionary_path, filename_corpus, filename_gl, filename_label, num_of
     labels = read_labels(filename_label)
 
     prec, rcal = evalQuality(labels, y_kmer_grp_cl, n_clusters=num_of_species)
-    print('K-mer (group): Prec = %.4f, Recall = %.4f, F1 = %.4f' % (prec, rcal, 2.0/(1.0/prec+1.0/rcal)))
 
-kmeans(args.dictionary, args.corpus, args.group, args.labels, int(args.species))
+    return prec, rcal
+
+
+
+start_time = datetime.now()
+prec, rcal = kmeans(args.dictionary, args.corpus, args.group, args.labels, int(args.species))
+execute_time = (datetime.now() - start_time).total_seconds()
+print("Step 3:", execute_time)
+print('K-mer (group): Prec = %.4f, Recall = %.4f, F1 = %.4f' % (prec, rcal, 2.0/(1.0/prec+1.0/rcal)))
+
+F1 = 2 * (prec * rcal) / (prec + rcal)
+
+data = {}
+data["3"] = execute_time
+data["Precision"] = prec
+data["Recall"] = rcal
+data["Fmeasure"] = F1
+
+with open(args.time+'/overview.json', 'r+') as outfile:
+    file = json.load(outfile)
+    data["Execution"] = file["1.1"] + file["1.2"] + file["1.3"] + file["2.1"] + file["2.2"] + data["3"]
+    file.update(data)
+    outfile.seek(0)
+    json.dump(file, outfile)

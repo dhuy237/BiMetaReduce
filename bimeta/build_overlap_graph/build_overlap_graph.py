@@ -6,10 +6,17 @@ from mrjob.step import MRStep
 
 import itertools as it
 import networkx as nx
+from datetime import datetime
+import json
+import argparse
 
 # import sys
 # sys.path.append("../")  # Add "../" to utils folder path
 # from bimeta.utils import globals
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-t", "--time", help = "Output overview file")
+args, unknown = parser.parse_known_args()
 
 class BuildOverlapGraph(MRJob):
 
@@ -21,7 +28,8 @@ class BuildOverlapGraph(MRJob):
         # and the value of the option will magically be changed to its path. 
         super(BuildOverlapGraph, self).configure_args()
         self.add_passthru_arg("-qm", "--q_mers", help="Lengths of q-mers", default=30, type=int)
-        
+        self.add_passthru_arg("-t", "--time", help = "Output overview file")
+ 
     def init_configure(self): 
         self.q_mers = self.options.q_mers
 
@@ -65,4 +73,15 @@ class BuildOverlapGraph(MRJob):
         ]
 
 
+start_time = datetime.now()
 BuildOverlapGraph.run()
+execute_time = (datetime.now() - start_time).total_seconds()
+print("Step 2.1:", execute_time)
+
+data = {}
+data["2.1"] = execute_time
+with open(args.time+'/overview.json', 'r+') as outfile:
+    file = json.load(outfile)
+    file.update(data)
+    outfile.seek(0)
+    json.dump(file, outfile)
