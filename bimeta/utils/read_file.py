@@ -21,6 +21,7 @@ Example of output file reads_summary.json
 
 DATA_PATH = "/home/dhuy237/thesis/code/bimetaReduce/bimeta/data/R4_medium/R4_medium.fna"
 SAVE_PATH = "/home/dhuy237/thesis/code/bimetaReduce/bimeta/data/R4_medium/"
+JSON_PATH = "/home/dhuy237/thesis/code/bimetaReduce/bimeta/data/test"
 MAXIMUM_SPECIES = 20
 
 def format_read(read):
@@ -76,5 +77,14 @@ def convert2json(data, save_path):
     with open(save_path+'reads_summary.json', 'w+', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
+def readjson(data_path):
+    with open(data_path+'/overview.json', 'r') as outfile:
+        data = json.load(outfile)   
+        return data
+       
+
 data = load_meta_reads(DATA_PATH)
 convert2json(data, SAVE_PATH)
+
+data_json = readjson(JSON_PATH)
+print(data_json)
