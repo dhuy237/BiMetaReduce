@@ -89,15 +89,11 @@ RUN_TIME_IN_S=$(echo "scale = 3; $RUN_TIME / 1000000000" | bc)
 echo "\"Step_2_2\":\"$RUN_TIME_IN_S\"}" >> $DATA_PATH/$OVERVIEW
 
 
-# mkdir $DATA_PATH/output_2_2/
-# hdfs dfs -get $USR_HDFS/output/part-00000 $DATA_PATH/output_2_2/
-
-
-# # Step 3
-# spark-submit bimeta/cluster_groups/kmeans.py \
-# --group $DATA_PATH/output_2_2/part-00000 \
-# --corpus $DATA_PATH/output_1_3/part-00000 \
-# --dictionary $DATA_PATH/dictionary.pkl \
-# --species $NUM_OF_SPECIES \
-# --labels $DATA_PATH/output_1_1/part-00000 \
-# --time $DATA_PATH/$OVERVIEW
+# Step 3
+python bimeta/cluster_groups/clustering.py \
+--group $DATA_PATH/output_2_2/part-00000 \
+--corpus $DATA_PATH/output_1_3/part-00000 \
+--dictionary $DATA_PATH/dictionary.pkl \
+--species $NUM_OF_SPECIES \
+--labels $DATA_PATH/output_1_1/part-00000 \
+--time $DATA_PATH/$OVERVIEW

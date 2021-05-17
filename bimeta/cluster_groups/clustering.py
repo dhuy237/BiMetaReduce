@@ -9,6 +9,7 @@ import json
 import numpy as np
 from sklearn.metrics import confusion_matrix
 import argparse
+from datetime import datetime
 
 # sys.path.append("../")  # Add "../" to utils folder path
 # from bimeta.utils import globals
@@ -31,6 +32,7 @@ parser.add_argument("-c", "--corpus", help = "Input corpus file")
 parser.add_argument("-d", "--dictionary", help = "Input dictionary file")
 parser.add_argument("-s", "--species", help = "Input number of species")
 parser.add_argument("-l", "--labels", help = "Input labels file")
+parser.add_argument("-t", "--time", help = "Output overview file")
 args = parser.parse_args()
 
 def read_group(filename_gl):
@@ -165,7 +167,25 @@ def evalQuality(y_true, y_pred, n_clusters=args.species):
     return prec, rcal
 
 
+start_time = datetime.now()
 kmer_clustering = clustering(args.dictionary, args.corpus, args.group, int(args.species))
+execute_time = (datetime.now() - start_time).total_seconds()
+
 labels = read_labels(args.labels)
 prec, rcal = evalQuality(labels, kmer_clustering, n_clusters = int(args.species))
-print( 'K-mer (group): Prec = %.4f, Recall = %.4f, F1 = %.4f' % (prec, rcal, 2.0/(1.0/prec+1.0/rcal)) )
+print('K-mer (group): Prec = %.4f, Recall = %.4f, F1 = %.4f' % (prec, rcal, 2.0/(1.0/prec+1.0/rcal)))
+
+F1 = 2 * (prec * rcal) / (prec + rcal)
+
+data = {}
+data["Step_3"] = str(execute_time)
+data["Precision"] = prec
+data["Recall"] = rcal
+data["Fmeasure"] = F1
+
+with open(args.time, 'r+') as outfile:
+    file = json.load(outfile)
+    data["Execution"] = float(file["Step_1_1"]) + float(file["Step_1_2"]) + float(file["Step_1_3"]) + float(file["Step_2_1"]) + float(file["Step_2_2"]) + float(data["Step_3"])
+    file.update(data)
+    outfile.seek(0)
+    json.dump(file, outfile)
