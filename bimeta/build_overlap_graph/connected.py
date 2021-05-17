@@ -25,6 +25,7 @@ import json
 # CHECKPOINT_DIR = "/home/dhuy237/graphframes_cps"
 # OUTPUT_PATH = globals.DATA_PATH+'temp.txt'
 
+# For generating the color palette
 MAXIMUM_SPECIES = 20
 
 parser = argparse.ArgumentParser()
@@ -34,7 +35,7 @@ parser.add_argument("-c", "--checkpoint", help = "Checkpoint directory")
 parser.add_argument("-o", "--output", help = "Output file")
 parser.add_argument("-g", "--output_graph", help = "Output graph file")
 parser.add_argument("-r", "--num_reads", help = "Number of shared reads", default=45, type=int)
-args, unknown = parser.parse_known_args()
+args = parser.parse_args()
 
 def build_vertices(filename_vertices):
     V = []

@@ -75,6 +75,10 @@ def parallel_create_document(reads, klist, n_workers=2):
 
 
 def read_file(filename):
+    """
+    For reading output_1_1 file
+
+    """
     reads = []
     labels = []
 
@@ -90,6 +94,10 @@ def read_file(filename):
 
 
 def convert2json(reads, labels, documents):
+    """
+    For saving to output_1_2 file
+
+    """
     result = []
     for i, item in enumerate(reads):
         result.append([i, item, str(labels[i]), documents[i]])

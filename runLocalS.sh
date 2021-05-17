@@ -22,6 +22,7 @@ RUN_TIME=`expr $END_TIME - $START_TIME`
 RUN_TIME_IN_S=$(echo "scale = 3; $RUN_TIME / 1000000000" | bc)
 echo "{\"Step_1_1\":\"$RUN_TIME_IN_S\"," > $DATA_PATH/$OVERVIEW
 
+
 # #  Step 1.2
 python bimeta/parallel_create_document/create_dictionary.py \
 --dictionary_path $DATA_PATH \
@@ -57,40 +58,35 @@ echo "\"Step_1_3\":\"$RUN_TIME_IN_S\"," >> $DATA_PATH/$OVERVIEW
 
 
 # # Step 2.1
-# START_TIME=`date +%s%N`
+START_TIME=`date +%s%N`
 
-# python bimeta/build_overlap_graph/build_overlap_graph_mr.py \
-# $DATA_PATH/output_1_1/part-00000 \
-# --output $DATA_PATH/output_2_1 \
-# --q_mers $LENGTH_OF_Q_MERS
+python bimeta/build_overlap_graph/build_overlap_graph.py \
+--input $DATA_PATH/output_1_1/part-00000 \
+--output $DATA_PATH/output_2_1/part-00000 \
+--q_mers $LENGTH_OF_Q_MERS \
+--num_reads $NUM_SHARED_READS
 
-# END_TIME=`date +%s%N`
+END_TIME=`date +%s%N`
 
-# RUN_TIME=`expr $END_TIME - $START_TIME`
-# RUN_TIME_IN_S=$(echo "scale = 3; $RUN_TIME / 1000000000" | bc)
-# echo "\"Step_2_1\":\"$RUN_TIME_IN_S\"," >> $DATA_PATH/$OVERVIEW
-
-# # Somehow the output of MR job return many files, usually just part-00000
-# cat $DATA_PATH/output_2_1/* > $DATA_PATH/output_2_1.txt
+RUN_TIME=`expr $END_TIME - $START_TIME`
+RUN_TIME_IN_S=$(echo "scale = 3; $RUN_TIME / 1000000000" | bc)
+echo "\"Step_2_1\":\"$RUN_TIME_IN_S\"," >> $DATA_PATH/$OVERVIEW
 
 
-# # Step 2.2
-# START_TIME=`date +%s%N`
+# Step 2.2
+START_TIME=`date +%s%N`
 
-# spark-submit --packages graphframes:graphframes:0.8.1-spark3.0-s_2.12 \
-# bimeta/build_overlap_graph/connected.py \
-# --vertices $DATA_PATH/output_1_1/part-00000 \
-# --edges $DATA_PATH/output_2_1.txt \
-# --checkpoint $USR_HDFS \
-# --output $USR_HDFS/output \
-# --output_graph $DATA_PATH \
-# --num_reads $NUM_SHARED_READS
+python bimeta/build_overlap_graph/build_connected.py \
+--vertices $DATA_PATH/output_1_1/part-00000 \
+--edges $DATA_PATH/output_2_1/part-00000 \
+--output $DATA_PATH/output_2_2/part-00000 \
+--output_graph $DATA_PATH
 
-# END_TIME=`date +%s%N`
+END_TIME=`date +%s%N`
 
-# RUN_TIME=`expr $END_TIME - $START_TIME`
-# RUN_TIME_IN_S=$(echo "scale = 3; $RUN_TIME / 1000000000" | bc)
-# echo "\"Step_2_2\":\"$RUN_TIME_IN_S\"}" >> $DATA_PATH/$OVERVIEW
+RUN_TIME=`expr $END_TIME - $START_TIME`
+RUN_TIME_IN_S=$(echo "scale = 3; $RUN_TIME / 1000000000" | bc)
+echo "\"Step_2_2\":\"$RUN_TIME_IN_S\"}" >> $DATA_PATH/$OVERVIEW
 
 
 # mkdir $DATA_PATH/output_2_2/

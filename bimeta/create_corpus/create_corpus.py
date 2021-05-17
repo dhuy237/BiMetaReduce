@@ -16,7 +16,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--input", help = "Input file")
 parser.add_argument("-o", "--output", help = "Output file")
 parser.add_argument("-d", "--dictionary", help = "Dictionary file")
-args, unknown = parser.parse_known_args()
+args = parser.parse_args()
 
 # Not implemented yet in the Web UI
 IS_TFIDF = False
@@ -28,7 +28,7 @@ def create_corpus(dictionary, documents,
                   is_log_entropy=False, 
                   is_normalize=True):
     
-    corpus = [dictionary.doc2bow(d, allow_update=True) for d in documents]
+    corpus = [dictionary.doc2bow(d, allow_update=False) for d in documents]
     if is_tfidf:
         tfidf = TfidfModel(corpus=corpus, smartirs=smartirs)
         corpus = tfidf[corpus]
@@ -38,12 +38,16 @@ def create_corpus(dictionary, documents,
 
     # Will overwritten the existed file
     # Save new file because the dictionary allow to be updated
-    dictionary.save(args.dictionary)
+    # dictionary.save(args.dictionary)
     
     return corpus
 
 
 def read_file(filename):
+    """
+    For reading output_1_2 file
+
+    """
     documents = []
 
     with open(filename) as f:
@@ -57,6 +61,10 @@ def read_file(filename):
 
 
 def convert2json(corpus):
+    """
+    For saving to output_1_3 file
+
+    """
     result = []
     for i, item in enumerate(corpus):
         item = [list(elem) for elem in item]
