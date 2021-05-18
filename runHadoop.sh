@@ -33,7 +33,7 @@ NUM_OF_SPECIES=2
 # Start 1.1----------------------------------------------------------------------
 START_TIME=`date +%s%N`
 
-python $HOME/ServerWeb/BiMeta/BimetaCode/bimeta/load_meta_reads/load_read.py $INP_HDFS \
+python $HOME/ServerWeb/BiMeta/BimetaCode/bimeta/load_meta_reads/load_read_mr.py $INP_HDFS \
 --output $OUT_HDFS/output_1_1 \
 -r hadoop \
 --conf-path $CONF_FILE
@@ -56,7 +56,7 @@ python bimeta/parallel_create_document/create_dictionary.py \
 # Start 1.2----------------------------------------------------------------------
 START_TIME=`date +%s%N`
 
-python bimeta/parallel_create_document/load_create_document.py \
+python bimeta/parallel_create_document/create_document_mr.py \
 $OUT_HDFS/output_1_1/part-00000 \
 --output $OUT_HDFS/output_1_2 \
 -r hadoop \
@@ -67,7 +67,7 @@ END_TIME=`date +%s%N`
 
 RUN_TIME=`expr $END_TIME - $START_TIME`
 RUN_TIME_IN_S=$(echo "scale = 3; $RUN_TIME / 1000000000" | bc)
-echo "{\"Step_1_2\":\"$RUN_TIME_IN_S\"," > $JSON_FLR_WEB/$OVERVIEW
+echo "\"Step_1_2\":\"$RUN_TIME_IN_S\"," >> $JSON_FLR_WEB/$OVERVIEW
 # End----------------------------------------------------------------------
 
 
@@ -78,24 +78,30 @@ mv $OUT_FLR_WEB/part-00000 $OUT_FLR_WEB/OutStep_1_2
 # Start 1.3----------------------------------------------------------------------
 START_TIME=`date +%s%N`
 
-python bimeta/create_corpus/create_corpus.py \
---input $OUT_FLR_WEB/OutStep_1_2 \
---output $OUT_FLR_WEB/OutStep_1_3 \
+python bimeta/create_corpus/create_corpus_mr.py \
+$OUT_HDFS/output_1_2/part-00000 \
+--output $OUT_HDFS/output_1_3 \
+-r hadoop \
+--conf-path $CONF_FILE \
 --dictionary $FOL_LCL_PATH/dictionary.pkl
 
 END_TIME=`date +%s%N`
 
 RUN_TIME=`expr $END_TIME - $START_TIME`
 RUN_TIME_IN_S=$(echo "scale = 3; $RUN_TIME / 1000000000" | bc)
-echo "{\"Step_1_3\":\"$RUN_TIME_IN_S\"," > $JSON_FLR_WEB/$OVERVIEW
+echo "\"Step_1_3\":\"$RUN_TIME_IN_S\"," >> $JSON_FLR_WEB/$OVERVIEW
+
+hdfs dfs -get $OUT_HDFS/output_1_3/part-00000 $OUT_FLR_WEB
+mv $OUT_FLR_WEB/part-00000 $OUT_FLR_WEB/OutStep_1_3
 # End----------------------------------------------------------------------
+
 
 
 # Step 2.1
 # Start 2.1----------------------------------------------------------------------
 START_TIME=`date +%s%N`
 
-python bimeta/build_overlap_graph/build_overlap_graph.py \
+python bimeta/build_overlap_graph/build_overlap_graph_mr.py \
 $OUT_HDFS/output_1_1/part-00000 \
 --output $OUT_HDFS/output_2_1 \
 -r hadoop \
@@ -106,24 +112,11 @@ END_TIME=`date +%s%N`
 
 RUN_TIME=`expr $END_TIME - $START_TIME`
 RUN_TIME_IN_S=$(echo "scale = 3; $RUN_TIME / 1000000000" | bc)
-echo "{\"Step_2_1\":\"$RUN_TIME_IN_S\"," > $JSON_FLR_WEB/$OVERVIEW
+echo "\"Step_2_1\":\"$RUN_TIME_IN_S\"," >> $JSON_FLR_WEB/$OVERVIEW
 # End----------------------------------------------------------------------
 
 hdfs dfs -get $OUT_HDFS/output_2_1/part-00000 $OUT_FLR_WEB
 mv $OUT_FLR_WEB/part-00000 $OUT_FLR_WEB/OutStep_2_1
-
-# Step 2.2
-# spark-submit --packages graphframes:graphframes:0.8.1-spark3.0-s_2.12 \
-# bimeta/build_overlap_graph/connected.py \
-# --vertices $OUT_FLR_WEB/OutStep_1_1 \
-# --edges $OUT_FLR_WEB/OutStep_2_1 \
-# --checkpoint $OUT_HDFS/graphframes_cps \
-# --output $OUT_HDFS/graphframes_cps/2 \
-# --num_reads $NUM_SHARED_READS
-# --conf "spark.yarn.access.hadoopFileSystems=${OUT_HDFS}" \
-# --master yarn \
-# --deploy-mode cluster \
-# --files /home/tnhan/ServerWeb/BiMeta/userFolder/thesis1/output/OutStep_1_1,/home/tnhan/ServerWeb/BiMeta/userFolder/thesis1/output/OutStep_2_1 \
 
 # Start 2.2----------------------------------------------------------------------
 START_TIME=`date +%s%N`
@@ -141,7 +134,7 @@ END_TIME=`date +%s%N`
 
 RUN_TIME=`expr $END_TIME - $START_TIME`
 RUN_TIME_IN_S=$(echo "scale = 3; $RUN_TIME / 1000000000" | bc)
-echo "{\"Step_2_2\":\"$RUN_TIME_IN_S\"," > $JSON_FLR_WEB/$OVERVIEW
+echo "\"Step_2_2\":\"$RUN_TIME_IN_S\"}" >> $JSON_FLR_WEB/$OVERVIEW
 # End----------------------------------------------------------------------
 
 
@@ -155,12 +148,12 @@ spark-submit bimeta/cluster_groups/kmeans.py \
 --corpus $OUT_FLR_WEB/OutStep_1_3 \
 --dictionary $FOL_LCL_PATH/dictionary.pkl \
 --species $NUM_OF_SPECIES \
---labels $OUT_FLR_WEB/OutStep_1_1
+--labels $OUT_FLR_WEB/OutStep_1_1 \
 --time $JSON_FLR_WEB/$OVERVIEW
 # End----------------------------------------------------------------------
 
-# # Clean HDFS
-# # hdfs dfs -rm /user/$IN_FILE_NAME
+# Clean HDFS
+hdfs dfs -rm /user/$IN_FILE_NAME
 # # hdfs dfs -rm -r /user/session_$RND_NO
 
 # # for i in {1..10..1}

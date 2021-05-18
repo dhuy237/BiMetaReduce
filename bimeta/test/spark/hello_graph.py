@@ -2,6 +2,11 @@ from pyspark import *
 from pyspark.sql import *
 from graphframes import *
 
+"""
+Run command:
+spark-submit --packages graphframes:graphframes:0.8.1-spark3.0-s_2.12 hello_graph.py
+"""
+
 spark = SparkSession.builder.appName("fun").getOrCreate()
 vertices = spark.createDataFrame(
     [
