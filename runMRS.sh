@@ -1,31 +1,42 @@
+PARAM_JSON=/home/dhuy237/thesis/code/bimetaReduce/bimeta/data/testMRS/21_05_19_09_42_33.json
+
+
 DATA_PATH=bimeta/data/testMRS
-INPUT_FILE=R4_medium.fna
-LENGTHS_OF_K_MERS=4
-LENGTH_OF_Q_MERS=30
-NUM_SHARED_READS=45
-NUM_OF_SPECIES=2
+INPUT_FILE=($(jq -r '.file' $PARAM_JSON))
+
+LENGTHS_OF_K_MERS=($(jq -r '.params.kmer' $PARAM_JSON))
+LENGTH_OF_Q_MERS=($(jq -r '.params.lofqmer' $PARAM_JSON))
+NUM_SHARED_READS=($(jq -r '.params.sharereads' $PARAM_JSON))
+
+FLAG_NUM_OF_SPECIES=($(jq -r '.params.kNumber' $PARAM_JSON))
+
+if [ "$FLAG_NUM_OF_SPECIES" = "false" ]
+then
+    NUM_OF_SPECIES=2
+else
+    NUM_OF_SPECIES=$FLAG_NUM_OF_SPECIES
+fi
+
 USR_HDFS=hdfs:///user/graphframes_cps/1
 OVERVIEW=overview.json
-
-DATE_TIME=$1
-OUTPUT_GRAPH=graph_${DATE_TIME}.png
+OUTPUT_GRAPH=($(jq -r '.nodeGraph' $PARAM_JSON))
 
 # Parameters for select Sequential mode or MR mode
 # true: MR mode
 # false: Sequential mode
-STEP_1_1=true
-STEP_1_2=true
-STEP_1_3=true
-STEP_2_1=false
-STEP_2_2=true
-STEP_3=false
+STEP_1_1=($(jq -r '.steps.Step1' $PARAM_JSON))
+STEP_1_2=($(jq -r '.steps.Step2' $PARAM_JSON))
+STEP_1_3=($(jq -r '.steps.Step3' $PARAM_JSON))
+STEP_2_1=($(jq -r '.steps.Step4' $PARAM_JSON))
+STEP_2_2=($(jq -r '.steps.Step5' $PARAM_JSON))
+STEP_3=($(jq -r '.steps.Step6' $PARAM_JSON))
 
 
 # Step 1.1
 # Start 1.1----------------------------------------------------------------------
 START_TIME=`date +%s%N`
 
-if [ "$STEP_1_1" = true ]
+if [ "$STEP_1_1" = "true" ]
 then
     python bimeta/load_meta_reads/load_read_mr.py \
     $DATA_PATH/$INPUT_FILE \
@@ -53,7 +64,7 @@ python bimeta/parallel_create_document/create_dictionary.py \
 --k_mers $LENGTHS_OF_K_MERS
 
 
-if [ "$STEP_1_2" = true ]
+if [ "$STEP_1_2" = "true" ]
 then
     python bimeta/parallel_create_document/create_document_mr.py \
     $DATA_PATH/output_1_1/part-00000 \
@@ -78,7 +89,7 @@ echo "\"Step_1_2\":\"$RUN_TIME_IN_S\"," >> $DATA_PATH/$OVERVIEW
 # Start 1.3----------------------------------------------------------------------
 START_TIME=`date +%s%N`
 
-if [ "$STEP_1_3" = true ]
+if [ "$STEP_1_3" = "true" ]
 then
     python bimeta/create_corpus/create_corpus_mr.py \
     $DATA_PATH/output_1_2/part-00000 \
@@ -103,7 +114,7 @@ echo "\"Step_1_3\":\"$RUN_TIME_IN_S\"," >> $DATA_PATH/$OVERVIEW
 # Start 2.1----------------------------------------------------------------------
 START_TIME=`date +%s%N`
 
-if [ "$STEP_2_1" = true ]
+if [ "$STEP_2_1" = "true" ]
 then
     python bimeta/build_overlap_graph/build_overlap_graph_mr.py \
     $DATA_PATH/output_1_1/part-00000 \
@@ -131,17 +142,19 @@ spark-submit --packages graphframes:graphframes:0.8.1-spark3.0-s_2.12 \
 bimeta/build_overlap_graph/visualize_graph.py \
 --vertices $DATA_PATH/output_1_1/part-00000 \
 --edges $DATA_PATH/output_2_1/part-00000 \
---output_graph $DATA_PATH/OUTPUT_GRAPH \
+--output_graph $DATA_PATH/$OUTPUT_GRAPH \
 --num_reads $NUM_SHARED_READS
 
 START_TIME=`date +%s%N`
 
-if [ "$STEP_2_2" = true ]
+if [ "$STEP_2_2" = "true" ]
 then
+    cat $DATA_PATH/output_2_1/* > $DATA_PATH/output_2_1.txt
+
     spark-submit --packages graphframes:graphframes:0.8.1-spark3.0-s_2.12 \
     bimeta/build_overlap_graph/connected.py \
     --vertices $DATA_PATH/output_1_1/part-00000 \
-    --edges $DATA_PATH/output_2_1/part-00000 \
+    --edges $DATA_PATH/output_2_1.txt \
     --checkpoint $USR_HDFS \
     --output $USR_HDFS/output \
     --num_reads $NUM_SHARED_READS
@@ -166,7 +179,7 @@ echo "\"Step_2_2\":\"$RUN_TIME_IN_S\"}" >> $DATA_PATH/$OVERVIEW
 
 # Step 3
 # Start 3----------------------------------------------------------------------
-if [ "$STEP_3" = true ]
+if [ "$STEP_3" = "true" ]
 then
     spark-submit bimeta/cluster_groups/kmeans.py \
     --group $DATA_PATH/output_2_2/part-00000 \

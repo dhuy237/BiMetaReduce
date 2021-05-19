@@ -110,8 +110,8 @@ def evalQuality(y_true, y_pred, n_clusters):
     A = confusion_matrix(y_pred, y_true)
     if len(A) == 1:
       return 1, 1
-    prec = sum([max(A[:,j]) for j in range(0,n_clusters)])/sum([sum(A[i,:]) for i in range(0,n_clusters)])
-    rcal = sum([max(A[i,:]) for i in range(0,n_clusters)])/sum([sum(A[i,:]) for i in range(0,n_clusters)])
+    prec = sum([max(A[:,j]) for j in range(0, n_clusters)])/sum([sum(A[i,:]) for i in range(0, n_clusters)])
+    rcal = sum([max(A[i,:]) for i in range(0, n_clusters)])/sum([sum(A[i,:]) for i in range(0, n_clusters)])
 
     return prec, rcal
 
@@ -135,7 +135,7 @@ def kmeans(dictionary_path, filename_corpus, filename_gl, filename_label, num_of
     vecAssembler = VectorAssembler(inputCols=df_columns, outputCol="features")
     new_df = vecAssembler.transform(group_dist_df)
 
-    kmeans = KMeans(k=2, seed=1)  # 2 clusters here
+    kmeans = KMeans(k=num_of_species, seed=1)  # 2 clusters here
     model = kmeans.fit(new_df.select('features'))
 
     transformed = model.transform(new_df)

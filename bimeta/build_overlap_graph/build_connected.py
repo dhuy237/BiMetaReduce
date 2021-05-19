@@ -29,7 +29,7 @@ def get_connected_components(G):
     CC = [cc for cc in nx.connected_components(G)]
     GL = []
     for subV in CC:
-        GL += [list(subV)]
+        GL += [list(map(str, subV))]
 
     return GL
 
@@ -77,7 +77,7 @@ def save_file(GL, output_path):
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, 'w+') as f:
         for item in GL:
-            f.write("%s\n" % json.dumps(item))
+            f.write("%s\n" % item)
 
 
 labels = read_vertices(args.vertices)
