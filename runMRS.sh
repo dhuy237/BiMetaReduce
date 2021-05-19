@@ -7,14 +7,17 @@ NUM_OF_SPECIES=2
 USR_HDFS=hdfs:///user/graphframes_cps/1
 OVERVIEW=overview.json
 
+DATE_TIME=$1
+OUTPUT_GRAPH=graph_${DATE_TIME}.png
+
 # Parameters for select Sequential mode or MR mode
 # true: MR mode
 # false: Sequential mode
 STEP_1_1=true
 STEP_1_2=true
 STEP_1_3=true
-STEP_2_1=true
-STEP_2_2=false
+STEP_2_1=false
+STEP_2_2=true
 STEP_3=false
 
 
@@ -124,6 +127,13 @@ echo "\"Step_2_1\":\"$RUN_TIME_IN_S\"," >> $DATA_PATH/$OVERVIEW
 
 # Step 2.2
 # Start 2.2----------------------------------------------------------------------
+spark-submit --packages graphframes:graphframes:0.8.1-spark3.0-s_2.12 \
+bimeta/build_overlap_graph/visualize_graph.py \
+--vertices $DATA_PATH/output_1_1/part-00000 \
+--edges $DATA_PATH/output_2_1/part-00000 \
+--output_graph $DATA_PATH/OUTPUT_GRAPH \
+--num_reads $NUM_SHARED_READS
+
 START_TIME=`date +%s%N`
 
 if [ "$STEP_2_2" = true ]
@@ -134,7 +144,6 @@ then
     --edges $DATA_PATH/output_2_1/part-00000 \
     --checkpoint $USR_HDFS \
     --output $USR_HDFS/output \
-    --output_graph $DATA_PATH \
     --num_reads $NUM_SHARED_READS
 
     mkdir $DATA_PATH/output_2_2/

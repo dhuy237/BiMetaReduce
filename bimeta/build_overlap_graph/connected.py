@@ -29,7 +29,6 @@ parser.add_argument("-v", "--vertices", help = "Input vertices file")
 parser.add_argument("-e", "--edges", help = "Input edges file")
 parser.add_argument("-c", "--checkpoint", help = "Checkpoint directory")
 parser.add_argument("-o", "--output", help = "Output file")
-parser.add_argument("-g", "--output_graph", help = "Output graph file")
 parser.add_argument("-r", "--num_reads", help = "Number of shared reads", default=45, type=int)
 args = parser.parse_args()
 

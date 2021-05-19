@@ -73,6 +73,14 @@ cat $DATA_PATH/output_2_1/* > $DATA_PATH/output_2_1.txt
 
 
 # Step 2.2
+spark-submit --packages graphframes:graphframes:0.8.1-spark3.0-s_2.12 \
+bimeta/build_overlap_graph/visualize_graph.py \
+--vertices $DATA_PATH/output_1_1/part-00000 \
+--edges $DATA_PATH/output_2_1.txt \
+--output_graph $DATA_PATH/graph.png \
+--num_reads $NUM_SHARED_READS
+
+
 START_TIME=`date +%s%N`
 
 spark-submit --packages graphframes:graphframes:0.8.1-spark3.0-s_2.12 \
@@ -81,7 +89,6 @@ bimeta/build_overlap_graph/connected.py \
 --edges $DATA_PATH/output_2_1.txt \
 --checkpoint $USR_HDFS \
 --output $USR_HDFS/output \
---output_graph $DATA_PATH \
 --num_reads $NUM_SHARED_READS
 
 END_TIME=`date +%s%N`
