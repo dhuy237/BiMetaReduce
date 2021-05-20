@@ -54,7 +54,7 @@ def load_meta_reads(filename, type='fasta'):
             inf["species"] = label_index
             inf["number"] = 0
             inf["code"] = label
-            inf["name"] = name
+            inf["name"] = name.rsplit(' ', 1)[0]
             inf["color"] = palette[label_index]
             result.append(inf)
 
