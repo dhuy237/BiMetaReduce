@@ -149,12 +149,12 @@ def kmeans(dictionary_path, filename_corpus, filename_gl, filename_label, num_of
 
     prec, rcal = evalQuality(labels, y_kmer_grp_cl, n_clusters=num_of_species)
 
-    return prec, rcal
+    return prec, rcal, spark
 
 
 
 start_time = datetime.now()
-prec, rcal = kmeans(args.dictionary, args.corpus, args.group, args.labels, int(args.species))
+prec, rcal, sparkSession = kmeans(args.dictionary, args.corpus, args.group, args.labels, int(args.species))
 execute_time = (datetime.now() - start_time).total_seconds()
 print("Step 3:", execute_time)
 print('K-mer (group): Prec = %.4f, Recall = %.4f, F1 = %.4f' % (prec, rcal, 2.0/(1.0/prec+1.0/rcal)))
@@ -167,9 +167,13 @@ data["Precision"] = prec
 data["Recall"] = rcal
 data["Fmeasure"] = F1
 
-with open(args.time, 'r+') as outfile:
-    file = json.load(outfile)
-    data["Execution"] = float(file["Step_1_1"]) + float(file["Step_1_2"]) + float(file["Step_1_3"]) + float(file["Step_2_1"]) + float(file["Step_2_2"]) + float(data["Step_3"])
-    file.update(data)
-    outfile.seek(0)
-    json.dump(file, outfile)
+data_list = [str(execute_time), str(prec), str(rcal), str(F1)]
+rdd_list = sparkSession.sparkContext.parallelize(data_list)
+rdd_list.coalesce(1).map(lambda row: str(row)).saveAsTextFile(args.time)
+
+# with open(args.time, 'r+') as outfile:
+#     file = json.load(outfile)
+#     data["Execution"] = float(file["Step_1_1"]) + float(file["Step_1_2"]) + float(file["Step_1_3"]) + float(file["Step_2_1"]) + float(file["Step_2_2"]) + float(data["Step_3"])
+#     file.update(data)
+#     outfile.seek(0)
+#     json.dump(file, outfile)
