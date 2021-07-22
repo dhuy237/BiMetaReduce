@@ -3,13 +3,6 @@ from mrjob.protocol import RawValueProtocol
 from mrjob.protocol import TextProtocol
 from mrjob.protocol import JSONProtocol
 
-import itertools as it
-from Bio.Seq import Seq
-from multiprocessing import Pool, Array, Value
-from gensim import corpora
-import numpy as np
-from datetime import datetime
-
 # import sys
 # sys.path.append("../")  # Add "../" to utils folder path
 # from bimeta.utils import globals
