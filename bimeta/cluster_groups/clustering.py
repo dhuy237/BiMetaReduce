@@ -33,6 +33,7 @@ parser.add_argument("-d", "--dictionary", help = "Input dictionary file")
 parser.add_argument("-s", "--species", help = "Input number of species")
 parser.add_argument("-l", "--labels", help = "Input labels file")
 parser.add_argument("-t", "--time", help = "Output overview file")
+parser.add_argument("-o", "--output", help = "Output file")
 args = parser.parse_args()
 
 def read_group(filename_gl):
@@ -78,6 +79,17 @@ def read_labels(filename_labels):
     
     return labels
     
+def extract_read(filename_labels):
+    reads = []
+    
+    with open(filename_labels) as f:
+        content_reads = f.readlines()
+    
+    for line in content_reads:
+        clean_line = str(re.sub('[null\t\n\[\]\""]', '', line).replace(' ', '').split(',')[1])
+        reads.append(clean_line)
+    
+    return reads
 
 def compute_dist(dist, groups, seeds, only_seed=True):
     res = []
@@ -166,12 +178,18 @@ def evalQuality(y_true, y_pred, n_clusters=int(args.species)):
 
     return prec, rcal
 
+def save_file(labels, reads, output_path):
+    for i, read in enumerate(reads):
+        with open(output_path+"/group_"+str(labels[i])+".txt", 'a') as f:
+            f.write("%s\t%s\n" % (i, read))
 
 start_time = datetime.now()
 kmer_clustering = clustering(args.dictionary, args.corpus, args.group, int(args.species))
 execute_time = (datetime.now() - start_time).total_seconds()
 
 labels = read_labels(args.labels)
+reads = extract_read(args.labels)
+
 prec, rcal = evalQuality(labels, kmer_clustering, n_clusters = int(args.species))
 sys.stderr.write('K-mer (group): Prec = %.4f, Recall = %.4f, F1 = %.4f' % (prec, rcal, 2.0/(1.0/prec+1.0/rcal)))
 
@@ -189,3 +207,5 @@ with open(args.time, 'r+') as outfile:
     file.update(data)
     outfile.seek(0)
     json.dump(file, outfile)
+
+save_file(kmer_clustering, reads, args.output)

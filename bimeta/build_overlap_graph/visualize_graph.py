@@ -70,12 +70,13 @@ def visualize_graph(vertices_path, edges_path, num_reads, color_dict, output_pat
 
     # Get label from graphframe vertices
     label = g.vertices.select("label").rdd.flatMap(lambda x: x).collect()
+    layout = ig.layout("circle")
 
     # Create "color" attribute for vertex label
     ig.vs["color"] = [color_dict[label[int(name)]] for name in ig.vs["name"]]
 
     # Save plot as .png
-    plot(ig, target=output_path, vertex_size=10, bbox=(0, 0, 500, 500))
+    plot(ig, layout=layout, target=output_path, vertex_size=10, bbox=(0, 0, 500, 500))
 
 
 palette = sns.color_palette(None, MAXIMUM_SPECIES).as_hex()

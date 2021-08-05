@@ -7,10 +7,6 @@ from gensim.models import LogEntropyModel
 import itertools as it
 from Bio.Seq import Seq
 
-# Not implemented yet in the Web UI
-IS_TFIDF = False
-SMARTIRS = None
-
 def gen_kmers(klist):
     bases = ["A", "C", "G", "T"]
     kmers_list = []
@@ -29,17 +25,13 @@ def gen_kmers(klist):
 
 
 def create_corpus(
+    dictionary,
     documents,
     is_tfidf=False,
     smartirs=None,
     is_log_entropy=False,
-    is_normalize=True,
-    klist=[4]
+    is_normalize=True
 ):
-
-    k_mers_set = [gen_kmers(klist)]
-    dictionary = corpora.Dictionary(k_mers_set)
-
     corpus = dictionary.doc2bow(documents, allow_update=False)
     if is_tfidf:
         tfidf = TfidfModel(corpus=corpus, smartirs=smartirs)
@@ -56,11 +48,12 @@ class CreateCorpus(MRJob):
     
     def mapper(self, _, line):
 
+        k_mers_set = [gen_kmers([4])]
+        dictionary = corpora.Dictionary(k_mers_set)
+        
         corpus = create_corpus(
-            documents=line[3],
-            is_tfidf=IS_TFIDF,
-            smartirs=SMARTIRS,
-            klist=[4]
+            dictionary=dictionary,
+            documents=line[3]
         )
         yield None, (line[0], corpus)
 

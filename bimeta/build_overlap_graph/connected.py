@@ -5,10 +5,7 @@ from graphframes import GraphFrame
 import json
 import re
 import pandas as pd
-from pandas.core.common import flatten
 import argparse
-import seaborn as sns
-import json
 
 # sys.path.append("../")  # Add "../" to utils folder path
 # from utils import globals

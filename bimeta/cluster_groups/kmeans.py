@@ -32,6 +32,7 @@ parser.add_argument("-d", "--dictionary", help = "Input dictionary file")
 parser.add_argument("-s", "--species", help = "Input number of species")
 parser.add_argument("-l", "--labels", help = "Input labels file")
 parser.add_argument("-t", "--time", help = "Output overview file")
+parser.add_argument("-o", "--output", help = "Output file")
 args, unknown = parser.parse_known_args()
 
 def read_group(filename_gl):
@@ -73,6 +74,18 @@ def read_labels(filename_labels):
         labels.append(clean_line)
     
     return labels
+
+def extract_read(filename_labels):
+    reads = []
+    
+    with open(filename_labels) as f:
+        content_reads = f.readlines()
+    
+    for line in content_reads:
+        clean_line = str(re.sub('[null\t\n\[\]\""]', '', line).replace(' ', '').split(',')[1])
+        reads.append(clean_line)
+    
+    return reads
 
 def compute_dist(dist, groups, seeds, only_seed=True):
     res = []
@@ -149,12 +162,16 @@ def kmeans(dictionary_path, filename_corpus, filename_gl, filename_label, num_of
 
     prec, rcal = evalQuality(labels, y_kmer_grp_cl, n_clusters=num_of_species)
 
-    return prec, rcal, spark
+    return prec, rcal, spark, y_kmer_grp_cl
 
+def save_file(labels, reads, output_path):
+    for i, read in enumerate(reads):
+        with open(output_path+"/group_"+str(labels[i])+".txt", 'a') as f:
+            f.write("%s\t%s\n" % (i, read))
 
 
 start_time = datetime.now()
-prec, rcal, sparkSession = kmeans(args.dictionary, args.corpus, args.group, args.labels, int(args.species))
+prec, rcal, sparkSession, y_kmer_grp_cl = kmeans(args.dictionary, args.corpus, args.group, args.labels, int(args.species))
 execute_time = (datetime.now() - start_time).total_seconds()
 print("Step 3:", execute_time)
 print('K-mer (group): Prec = %.4f, Recall = %.4f, F1 = %.4f' % (prec, rcal, 2.0/(1.0/prec+1.0/rcal)))
@@ -177,3 +194,6 @@ rdd_list.coalesce(1).map(lambda row: str(row)).saveAsTextFile(args.time)
 #     file.update(data)
 #     outfile.seek(0)
 #     json.dump(file, outfile)
+
+reads = extract_read(args.labels)
+save_file(y_kmer_grp_cl, reads, args.output)

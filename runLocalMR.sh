@@ -1,7 +1,7 @@
 conda activate pyenv
 
 DATA_PATH=bimeta/data/test
-INPUT_FILE=R4_medium.fna
+INPUT_FILE=R4.fna
 LENGTHS_OF_K_MERS=4
 LENGTH_OF_Q_MERS=30
 NUM_SHARED_READS=45

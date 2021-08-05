@@ -187,7 +187,8 @@ then
     --dictionary $DATA_PATH/dictionary.pkl \
     --species $NUM_OF_SPECIES \
     --labels $DATA_PATH/output_1_1/part-00000 \
-    --time $DATA_PATH/$OVERVIEW
+    --time $DATA_PATH/$OVERVIEW \
+    --output $DATA_PATH/outputGroup
 else
     python bimeta/cluster_groups/clustering.py \
     --group $DATA_PATH/output_2_2/part-00000 \
@@ -195,6 +196,7 @@ else
     --dictionary $DATA_PATH/dictionary.pkl \
     --species $NUM_OF_SPECIES \
     --labels $DATA_PATH/output_1_1/part-00000 \
-    --time $DATA_PATH/$OVERVIEW
+    --time $DATA_PATH/$OVERVIEW \
+    --output $DATA_PATH/outputGroup
 fi
 # End----------------------------------------------------------------------
